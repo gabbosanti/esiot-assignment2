@@ -9,6 +9,13 @@ BlinkingTask::BlinkingTask(Led* pLed, Context* pContext):
 }
   
 void BlinkingTask::tick(){
+
+    bool inBlinkingPhase = pContext->isStarted();
+
+    if(!inBlinkingPhase && state != IDLE){
+        setState(IDLE);
+    }
+
     switch (state){   
     case IDLE: {
         if (this->checkAndSetJustEntered()){
@@ -16,35 +23,41 @@ void BlinkingTask::tick(){
             Logger.log(F("[BT] IDLE"));
 
         }
-        if (pContext->isStarted()){
-            setState(OFF);
+        if (inBlinkingPhase()){
+            setState(BLINK_OFF);
         }
         break;
     }
     case OFF: {
         if (this->checkAndSetJustEntered()){
             pLed->switchOff();
-            Logger.log(F("[BT] OFF"));
+            Logger.log(F("[BT] BLINK_OFF"));
         }
-        if (pContext->isStopped()){
+        if (elapsedTimeInState() >= (L2_BLINK / 2)){
+            setState(BLINK_ON);
+        }  
+        if(!inBlinkingPhase){
             setState(IDLE);
-        } else {
-             setState(ON);
         }
         break;
     }
     case ON: {
         if (this->checkAndSetJustEntered()){
             pLed->switchOn();
-            Logger.log(F("[BT] ON"));
+            Logger.log(F("[BT] BLINK_ON"));
         }
-        if (pContext->isStopped()){
+        if (elapsedTimeInState() >= (L2_BLINK / 2)){
+            setState(BLINK_OFF);
+        }  
+        if(!inBlinkingPhase){
             setState(IDLE);
-        } else {
-            setState(OFF);
         }
         break;
     }
+    default:
+        setState(IDLE);
+        break;
+    
     }
 }
 

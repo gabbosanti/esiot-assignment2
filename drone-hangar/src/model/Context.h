@@ -1,6 +1,8 @@
 #ifndef __CONTEXT__
 #define __CONTEXT__
 
+/* Sharing Global state between Tasks
+*/
 class Context {
 
 public:

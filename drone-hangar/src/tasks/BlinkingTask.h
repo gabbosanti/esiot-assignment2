@@ -15,11 +15,10 @@ public:
 private:  
   void setState(int state);
   long elapsedTimeInState();
-  void log(const String& msg);
   
   bool checkAndSetJustEntered();
   
-  enum { IDLE, OFF, ON } state;
+  enum { IDLE, BLINK_OFF, BLINK_ON } state;
   long stateTimestamp;
   bool justEntered;
 
