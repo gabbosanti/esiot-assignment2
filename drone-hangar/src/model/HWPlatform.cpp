@@ -11,9 +11,13 @@
 void wakeUp(){}
 
 HWPlatform::HWPlatform(){
-  pButton = new ButtonImpl(BT_PIN);
-  pLed = new Led(LED_PIN);
-  pMotor = new ServoMotorImpl(MOTOR_PIN);
+  pButton = new ButtonImpl(RESET_BUTTON_PIN);
+  pLed1 = new Led(L1_PIN);
+  pLed2 = new Led(L2_PIN);
+  pLed3 = new Led(L3_PIN);
+  pMotor = new ServoMotorImpl(HD_SERVO_PIN);
+  pPirSensor = new Pir(DPD_PIR_PIN);
+  pSonar = new Sonar(DDD_ECHO_PIN, DDD_TRIG_PIN, 30000);
 }
 
 
@@ -24,15 +28,31 @@ Button* HWPlatform::getButton(){
   return this->pButton;
 }
 
+Led* HWPlatform::getLed1(){
+  return this->pLed1;
+}
 
-Led*  HWPlatform::getLed(){
-  return this->pLed;
+Led* HWPlatform::getLed2(){
+  return this->pLed2;
+}
+
+Led* HWPlatform::getLed3(){
+  return this->pLed3;
+}
+
+Pir* HWPlatform::getPirSensor(){
+  return this->pPirSensor;
+}
+
+Sonar* HWPlatform::getSonar(){
+  return this->pSonar;
 }
 
 ServoMotor* HWPlatform::getMotor(){
   return this->pMotor;
 }
 
+//Testing HW components (da fare meglio)
 void HWPlatform::test(){
   bool btPressed = pButton->isPressed();
   pLed->switchOn();

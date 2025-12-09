@@ -1,4 +1,4 @@
-#include "SweepingTask.h"
+#include "ControlHangarTask.h"
 #include <Arduino.h>
 #include "config.h"
 #include "kernel/Logger.h"
@@ -9,12 +9,12 @@
 #define RESET_TIME 500
 
 
-SweepingTask::SweepingTask(Button* pButton, ServoMotor* pMotor, Context* pContext): 
+ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Context* pContext): 
     pMotor(pMotor), pButton(pButton), pContext(pContext){
     setState(IDLE);
 }
   
-void SweepingTask::tick(){
+void ControlHangarTask::tick(){
     switch (state){    
     case IDLE: {
         if (this->checkAndSetJustEntered()){
@@ -98,17 +98,17 @@ void SweepingTask::tick(){
     }
 }
 
-void SweepingTask::setState(int s){
+void ControlHangarTask::setState(int s){
     state = s;
     stateTimestamp = millis();
     justEntered = true;
 }
 
-long SweepingTask::elapsedTimeInState(){
+long ControlHangarTask::elapsedTimeInState(){
     return millis() - stateTimestamp;
 }
 
-bool SweepingTask::checkAndSetJustEntered(){
+bool ControlHangarTask::checkAndSetJustEntered(){
     bool bak = justEntered;
     if (justEntered){
       justEntered = false;

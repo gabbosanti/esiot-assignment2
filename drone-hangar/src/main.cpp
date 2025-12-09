@@ -11,7 +11,6 @@
 // #define __TESTING_HW__
 
 Scheduler sched;
-
 HWPlatform* pHWPlatform;
 Context* pContext;
 
@@ -19,7 +18,7 @@ void setup() {
   MsgService.init();
   sched.init(50);
 
-  Logger.log(":::::: Sweeping System ::::::");
+  Logger.log(":::::: Smart Drone Hangar ::::");
   
   pHWPlatform = new HWPlatform();
   pHWPlatform->init();
@@ -27,13 +26,13 @@ void setup() {
 #ifndef __TESTING_HW__
   pContext = new Context();
 
-  Task* pSweepingTask = new SweepingTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pContext);
-  pSweepingTask->init(50);
+  Task* pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getPirSensor(), pHWPlatform->getSonar(), pContext);
+  pControlHangarTask->init(50);
 
-  Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getLed(), pContext);
+  Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
   pBlinkingTask->init(100);
 
-  sched.addTask(pSweepingTask);
+  sched.addTask(pControlHangarTask);
   sched.addTask(pBlinkingTask);
 #endif
 
