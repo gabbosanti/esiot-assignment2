@@ -4,13 +4,15 @@
 #include "kernel/Task.h"
 #include "devices/ServoMotor.h"
 #include "devices/Button.h"
+#include "devices/Pir.h"
+#include "devices/Sonar.h"
 #include "model/Context.h"
 #include <Arduino.h>
 
-class SweepingTask: public Task {
+class ControlHangarTask: public Task {
 
 public:
-  SweepingTask(Button* pButton, ServoMotor* pMotor, Context* pContext); 
+  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Pir* pPirSensor, Sonar* pSonar, Context* pContext); 
   void tick();
 
 private:  
@@ -26,8 +28,9 @@ private:
 
   Button* pButton;
   ServoMotor* pMotor;
+  Pir* pPirSensor;
+  Sonar* pSonar;
   Context* pContext;
-
   int currentPos;
   bool toBeStopped;
 };

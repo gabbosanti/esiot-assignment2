@@ -9,7 +9,7 @@
 class BlinkingTask: public Task {
 
 public:
-  BlinkingTask(Led* pLed, Context* pContext); 
+  BlinkingTask(Led* pLed1, Led* pLed2, Led* pLed3, Context* pContext); 
   void tick();
 
 private:  
@@ -18,11 +18,13 @@ private:
   
   bool checkAndSetJustEntered();
   
-  enum { IDLE, BLINK_OFF, BLINK_ON } state;
+  enum { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM } state;
   long stateTimestamp;
   bool justEntered;
 
-  Led* pLed;
+  Led* pLed1;
+  Led* pLed2;
+  Led* pLed3;
   Context* pContext;
 };
 

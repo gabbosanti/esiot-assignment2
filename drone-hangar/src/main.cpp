@@ -5,7 +5,7 @@
 #include "kernel/MsgService.h"
 #include "model/HWPlatform.h"
 #include "tasks/TestHWTask.h"
-#include "tasks/SweepingTask.h"
+#include "tasks/ControlHangarTask.h"
 #include "tasks/BlinkingTask.h"
 
 // #define __TESTING_HW__

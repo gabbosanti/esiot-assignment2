@@ -3,8 +3,8 @@
 #include "config.h"
 #include "kernel/Logger.h"
 
-BlinkingTask::BlinkingTask(Led* pLed, Context* pContext): 
-    pContext(pContext), pLed(pLed){
+BlinkingTask::BlinkingTask(Led* pLed1, Led* pLed2, Led* pLed3, Context* pContext): 
+    pContext(pContext), pLed1(pLed1), pLed2(pLed2), pLed3(pLed3){
     setState(IDLE);
 }
   
@@ -19,7 +19,9 @@ void BlinkingTask::tick(){
     switch (state){   
     case IDLE: {
         if (this->checkAndSetJustEntered()){
-            pLed->switchOff();
+            pLed1->switchOff();
+            pLed2->switchOff();
+            pLed3->switchOff();
             Logger.log(F("[BT] IDLE"));
 
         }
@@ -28,7 +30,7 @@ void BlinkingTask::tick(){
         }
         break;
     }
-    case OFF: {
+    case L2_ON: {
         if (this->checkAndSetJustEntered()){
             pLed->switchOff();
             Logger.log(F("[BT] BLINK_OFF"));
@@ -41,7 +43,33 @@ void BlinkingTask::tick(){
         }
         break;
     }
-    case ON: {
+    case L2_OFF: {
+        if (this->checkAndSetJustEntered()){
+            pLed->switchOn();
+            Logger.log(F("[BT] BLINK_ON"));
+        }
+        if (elapsedTimeInState() >= (L2_BLINK / 2)){
+            setState(BLINK_OFF);
+        }  
+        if(!inBlinkingPhase){
+            setState(IDLE);
+        }
+        break;
+    }
+    case PRE_ALARM: {
+        if (this->checkAndSetJustEntered()){
+            pLed->switchOn();
+            Logger.log(F("[BT] BLINK_ON"));
+        }
+        if (elapsedTimeInState() >= (L2_BLINK / 2)){
+            setState(BLINK_OFF);
+        }  
+        if(!inBlinkingPhase){
+            setState(IDLE);
+        }
+        break;
+    }
+    case ALARM: {
         if (this->checkAndSetJustEntered()){
             pLed->switchOn();
             Logger.log(F("[BT] BLINK_ON"));
