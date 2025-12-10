@@ -19,10 +19,10 @@ void BlinkingTask::tick(){
     switch (state){   
     case IDLE: {
         if (this->checkAndSetJustEntered()){
-            pLed1->switchOff();
+            pLed1->switchOn();
             pLed2->switchOff();
             pLed3->switchOff();
-            Logger.log(F("[BT] IDLE"));
+            Logger.log(F("[BT] L1 ON, L2 OFF, L3 OFF"));
 
         }
         if (inBlinkingPhase()){
@@ -69,7 +69,7 @@ void BlinkingTask::tick(){
         }
         break;
     }
-    case ALARM: {
+    case LED_ALARM: {
         if (this->checkAndSetJustEntered()){
             pLed->switchOn();
             Logger.log(F("[BT] BLINK_ON"));

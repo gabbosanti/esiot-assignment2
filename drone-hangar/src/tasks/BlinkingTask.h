@@ -15,10 +15,10 @@ public:
 private:  
   void setState(int state);
   long elapsedTimeInState();
-  
   bool checkAndSetJustEntered();
   
-  enum { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM } state;
+  
+  enum { IDLE, L2_ON, L2_OFF, PRE_ALARM, LED_ALARM } state;
   long stateTimestamp;
   bool justEntered;
 

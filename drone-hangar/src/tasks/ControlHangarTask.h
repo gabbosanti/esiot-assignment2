@@ -12,25 +12,25 @@
 class ControlHangarTask: public Task {
 
 public:
-  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Pir* pPirSensor, Sonar* pSonar, Context* pContext); 
+  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, Context* pContext); 
   void tick();
 
 private:  
   void setState(int state);
   long elapsedTimeInState();
   void log(const String& msg);
-  
   bool checkAndSetJustEntered();
-  
-  enum { IDLE, STARTING, SWEEPING_FWD, SWEEPING_BWD, RESETTING } state;
+    
+  enum { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM } state;
   long stateTimestamp;
   bool justEntered;
 
   Button* pButton;
   ServoMotor* pMotor;
-  Pir* pPirSensor;
   Sonar* pSonar;
+  Pir* pPir;
   Context* pContext;
+
   int currentPos;
   bool toBeStopped;
 };

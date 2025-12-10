@@ -9,7 +9,7 @@
 #define RESET_TIME 500
 
 
-ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Context* pContext): 
+ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, Context* pContext): 
     pMotor(pMotor), pButton(pButton), pContext(pContext){
     setState(IDLE);
 }
