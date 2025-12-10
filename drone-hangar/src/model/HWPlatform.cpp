@@ -18,11 +18,14 @@ HWPlatform::HWPlatform(){
   pMotor = new ServoMotorImpl(HD_SERVO_PIN);
   pPirSensor = new Pir(DPD_PIR_PIN);
   pSonar = new Sonar(DDD_ECHO_PIN, DDD_TRIG_PIN, 30000);
+  pTempSensor = new TempSensorTMP36(TEMP_SENSOR_PIN);
+  pLcd = new Lcd(0x27, 16, 2); 
 }
-
 
 void HWPlatform::init(){
 }
+
+//Getters
 
 Button* HWPlatform::getButton(){
   return this->pButton;
@@ -52,10 +55,18 @@ ServoMotor* HWPlatform::getMotor(){
   return this->pMotor;
 }
 
+Lcd* HWPlatform::getLcd(){
+  return this->pLcd;
+} 
+
+TempSensorTMP36* HWPlatform::getTempSensor(){
+  return this->pTempSensor;
+}
+
 //Testing HW components (da fare meglio)
 void HWPlatform::test(){
   bool btPressed = pButton->isPressed();
-  pLed->switchOn();
+  pLed1->switchOn();
   pMotor->on();
   pMotor->setPosition(90);
   Logger.log("Button: " + String(btPressed ? "pressed" : " not pressed"));
@@ -63,6 +74,6 @@ void HWPlatform::test(){
   pMotor->setPosition(0);
   delay(1000);
   pMotor->off();
-  pLed->switchOff();
+  pLed1->switchOff();
 }
 

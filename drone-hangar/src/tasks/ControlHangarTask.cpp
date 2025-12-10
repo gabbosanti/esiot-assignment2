@@ -9,8 +9,8 @@
 #define RESET_TIME 500
 
 
-ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, Context* pContext): 
-    pMotor(pMotor), pButton(pButton), pContext(pContext){
+ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Context* pContext): 
+    pMotor(pMotor), pButton(pButton), pTempSensor(pTempSensor), pContext(pContext){
     setState(IDLE);
 }
   
@@ -29,9 +29,9 @@ void ControlHangarTask::tick(){
         }
         break;
     }
-    case SWEEPING_FWD: {        
+    case LANDING: {        
         if (this->checkAndSetJustEntered()){
-            Logger.log(F("[SWT] SWEEPING_FWD"));
+            Logger.log(F("[SWT] LANDING"));
         }
         
         /* update motor pos*/

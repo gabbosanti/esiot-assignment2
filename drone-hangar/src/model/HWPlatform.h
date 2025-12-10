@@ -7,6 +7,8 @@
 #include "devices/ServoMotor.h"
 #include "devices/Pir.h"
 #include "devices/Sonar.h"
+#include "devices/TempSensorTMP36.h"
+#include "devices/Lcd.h"
 
 class HWPlatform {
 
@@ -23,6 +25,8 @@ public:
   ServoMotor* getMotor();
   Pir* getPirSensor();
   Sonar* getSonar();
+  Lcd* getLcd();
+  TempSensorTMP36* getTempSensor();
 
 private:
   Button* pButton; //Button for reset
@@ -32,7 +36,8 @@ private:
   ServoMotor* pMotor; //Servo motor for opening/closing the hangar door
   Pir* pPirSensor; //PIR presence sensor
   Sonar* pSonar; //Ultrasonic distance sensor
-  //Manca il sensore di temperatura : quale ??
+  TempSensorTMP36* pTempSensor; //Temperature sensor
+  Lcd* pLcd; //LCD display
 
 };
 

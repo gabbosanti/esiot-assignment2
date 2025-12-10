@@ -7,12 +7,12 @@
 #include "devices/Pir.h"
 #include "devices/Sonar.h"
 #include "model/Context.h"
-#include <Arduino.h>
+#include "Arduino.h"
 
 class ControlHangarTask: public Task {
 
 public:
-  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, Context* pContext); 
+  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Context* pContext); 
   void tick();
 
 private:  
@@ -29,6 +29,7 @@ private:
   ServoMotor* pMotor;
   Sonar* pSonar;
   Pir* pPir;
+  TempSensorTMP36* pTempSensor;
   Context* pContext;
 
   int currentPos;
