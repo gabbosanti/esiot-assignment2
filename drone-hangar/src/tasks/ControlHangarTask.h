@@ -35,6 +35,7 @@ private:
   Lcd* pLcd;
   Context* pContext;
 
+  bool pendingPreAlarm;
 };
 
 #endif

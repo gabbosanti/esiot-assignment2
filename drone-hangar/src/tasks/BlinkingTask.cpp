@@ -1,5 +1,5 @@
 #include "tasks/BlinkingTask.h"
-#include <Arduino.h>
+#include "Arduino.h"
 #include "config.h"
 #include "kernel/Logger.h"
 
@@ -91,7 +91,7 @@ void BlinkingTask::tick(){
 
 
 void BlinkingTask::setState(int s){
-    state = s;
+    state = s; //Perchè da errore ?
     stateTimestamp = millis();
     justEntered = true;
 }
