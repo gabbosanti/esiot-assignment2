@@ -1,30 +1,15 @@
 #include "Context.h"
 
 Context::Context(){
-  started = false;
-  stopped = false;
+    // inizializza lo stato di visualizzazione predefinito
+    displayState = DisplayState::IDLE;
 }
 
-bool Context::isStarted(){
-  return started;
+void Context::setDisplayState(DisplayState s){
+    displayState = s;
 }
 
-bool Context::isStopped(){
-  return stopped;
-}
-
-void Context::setStarted(){
-  started = true;
-  stopped = false;
-}
-
-void Context::setStopped(){
-  stopped = true;
-  started = false;
-}
-
-void Context::reset(){
-  started = false;
-  stopped = false;
+DisplayState Context::getDisplayState(){
+    return displayState;
 }
 

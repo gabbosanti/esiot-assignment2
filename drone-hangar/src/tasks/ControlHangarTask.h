@@ -6,13 +6,15 @@
 #include "devices/Button.h"
 #include "devices/Pir.h"
 #include "devices/Sonar.h"
+#include "devices/TempSensorTMP36.h"
+#include "devices/Lcd.h"
 #include "model/Context.h"
 #include "Arduino.h"
 
 class ControlHangarTask: public Task {
 
 public:
-  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Context* pContext); 
+  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext); 
   void tick();
 
 private:  
@@ -30,10 +32,9 @@ private:
   Sonar* pSonar;
   Pir* pPir;
   TempSensorTMP36* pTempSensor;
+  Lcd* pLcd;
   Context* pContext;
 
-  int currentPos;
-  bool toBeStopped;
 };
 
 #endif

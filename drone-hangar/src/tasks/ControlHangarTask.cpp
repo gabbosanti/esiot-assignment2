@@ -7,10 +7,10 @@
 #define BWD_TIME 1000
 #define START_TIME 100
 #define RESET_TIME 500
+#define DRU_ACTIVATE 'OPEN DOOR'
 
-
-ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Context* pContext): 
-    pMotor(pMotor), pButton(pButton), pTempSensor(pTempSensor), pContext(pContext){
+ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
+    pMotor(pMotor), pButton(pButton), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
 }
   
@@ -18,15 +18,22 @@ void ControlHangarTask::tick(){
     switch (state){    
     case IDLE: {
         if (this->checkAndSetJustEntered()){
-            Logger.log(F("[SWT] IDLE"));
+            Logger.log(F("[CHT] IDLE"));
+            pContext->setDisplayState(DisplayState::IDLE);
         }
-        if (pButton->isPressed()){
-            pContext->setStarted();
+        if (Serial.read() == DRU_ACTIVATE){ //Se è arrivato il comando di apertura hangar
+            
             pMotor->on();
-            currentPos = 0;
-            toBeStopped = false;
-            setState(SWEEPING_FWD);
+            pLcd->print("TAKEOFF");       
+            pContext->setDisplayState(DisplayState::TAKEOFF);
+            setState(TAKEOFF);
         }
+        else{
+            delay(100); //evita di intasare la seriale
+            
+        }
+
+
         break;
     }
     case LANDING: {        

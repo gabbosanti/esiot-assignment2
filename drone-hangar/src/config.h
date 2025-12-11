@@ -23,8 +23,9 @@
 #define DDD_TRIG_PIN 4
 
 //LCD
-#define LCD_SDA_PIN A4
-#define LCD_SCL_PIN A5  
+#define LCD_ROW 16
+#define LCD_COL 2
+#define LCD_I2C_ADDR 0x27
 
 //TEMPERATURE SENSOR
 #define TEMP_SENSOR_PIN A0
