@@ -55,14 +55,13 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] TAKEOFF"));
             }
             
-            int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
             unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
             
             if (elapsedT1 > T3){
                 pendingPreAlarm = true; 
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
-            } else if (DDD > D1 && distanceD1 > T1){ 
+            } else if (distanceD1 > T1){ 
                 pMotor->setPosition(HD_CLOSE); //Apre hangar
                 pLcd->clear();
                 pLcd->print("DRONE OUT");
@@ -103,7 +102,6 @@ void ControlHangarTask::tick(){
             }
 
             int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
-            float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
             unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
 
