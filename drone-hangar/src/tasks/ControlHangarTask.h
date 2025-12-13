@@ -16,6 +16,8 @@ class ControlHangarTask: public Task {
 public:
   ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext); 
   void tick();
+  unsigned int checkTemp(float TEMP);
+  unsigned int checkDist(int DIST, char OPERATOR);
 
 private:  
   void setState(int state);
@@ -36,6 +38,15 @@ private:
   Context* pContext;
 
   bool pendingPreAlarm;
+  
+  //Per il controllo della distanza
+  bool distCond = false; //flag condizione distanza
+  unsigned long distCondStart = 0;
+  unsigned long distCondElapsed = 0;
+
+  //Per il controllo della temperatura
+
+
 };
 
 #endif

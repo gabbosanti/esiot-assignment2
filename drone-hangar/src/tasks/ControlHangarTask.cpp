@@ -1,5 +1,5 @@
 #include "ControlHangarTask.h"
-#include <Arduino.h>
+#include "Arduino.h"
 #include "config.h"
 #include "kernel/Logger.h"
 
@@ -22,27 +22,24 @@ void ControlHangarTask::tick(){
             if (this->checkAndSetJustEntered()){
                 Logger.log(F("[CHT] IDLE"));
                 pLcd->print("DRONE INSIDE");
+                pMotor->setPosition(HD_CLOSE);
                 pContext->setDisplayState(DisplayState::IDLE);
             }
 
-            float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-            long dt = elapsedTimeInState(); //temD){ //Se è apo trascorso nello stato   
-            if((temp >= TEMP1 && dt > T3) || pendingPreAlarm){
+            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+
+            if((elapsedT1 > T3) || pendingPreAlarm){
                 setState(PRE_ALARM);
             }
 
-            if (Serial.read() == DRU_ACTIVATE){ //Se è arrivato il comando di apertura hangar
+            else if (Serial.read() == DRU_ACTIVATE){ //Se è arrivato il comando di apertura hangar
                 
                 pMotor->on(); //Attiva servo
-                pMotor->setPosition(HD_OPEN); //Posiziona hangar in chiuso
+                pMotor->setPosition(HD_OPEN); //Apre l'hangar
                 pLcd->clear();
                 pLcd->print("TAKEOFF");       
                 pContext->setDisplayState(DisplayState::TAKEOFF);
                 setState(TAKEOFF);
-            }
-            else{
-                //Ciclo su se stesso
-                delay(100); //evita di intasare la seriale
             }
 
             break;
@@ -53,13 +50,14 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] TAKEOFF"));
             }
             
-            long dt = elapsedTimeInState(); //temD){ //Se è apo trascorso nello stato
             int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
-            float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-
-            if (DDD <= D1 && (temp >= TEMP1 && dt > T3)){
+            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            unsigned int distanceD1 = checkDist(D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
+            
+            if (DDD <= D1 && elapsedT1 > T3){
                 pendingPreAlarm = true; 
-            } else if (DDD > D1 && dt > T1){
+                Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
+            } else if (DDD > D1 && distanceD1 > T1){ 
                 pMotor->setPosition(HD_CLOSE); //Apre hangar
                 pLcd->clear();
                 pLcd->print("DRONE OUT");
@@ -77,22 +75,21 @@ void ControlHangarTask::tick(){
 
             //Se è rilevato il preallarme
             if(pendingPreAlarm){
+                Logger.log(F("[CHT] MOVING TO PRE-ALARM")); //Utilizzare per debug
                 setState(PRE_ALARM);
             } 
             
             //Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
-            else if((Serial.read() == DRU_OPENING) && pPir->isDetected()){ 
+            else if(pPir->isDetected() && (Serial.read() == DRU_OPENING) ){ 
 
                 pMotor->setPosition(HD_OPEN); //Apre hangar
                 pLcd->clear();
                 pLcd->print("LANDING");
                 pContext->setDisplayState(DisplayState::LANDING);
                 setState(LANDING);
-            } else {
-                //Ciclo su se stesso
-                delay(100); //evita di intasare la seriale
-
             }
+
+            break;
         }
 
         case LANDING: {
@@ -100,13 +97,15 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] LANDING"));
             }
 
-            long dt = elapsedTimeInState(); //temD){ //Se è apo trascorso nello stato
             int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
             float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
+            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            unsigned int distanceD2 = checkDist(D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
 
-            if (DDD >= D2 && (temp >= TEMP1 && dt > T3)){
+            if (DDD >= D2 && elapsedT1 > T3){
                 pendingPreAlarm = true; 
-            } else if (DDD < D2 && dt > T2){
+                Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
+            } else if (DDD < D2 && distanceD2 > T2){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
                 pLcd->clear();
                 pLcd->print("DRONE INSIDE");
@@ -122,10 +121,11 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] PRE-ALARM"));
                 
             }
-
+            
             float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-            long dt = elapsedTimeInState(); //temD){ //Se è apo trascorso nello stato
-            if (temp >= TEMP2 && dt > T4){
+            unsigned int elapsedT4 = checkTemp(TEMP2); //Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
+
+            if (temp >= TEMP2 && elapsedT4 > T4){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
                 pContext->setDisplayState(DisplayState::ALARM);
                 setState(ALARM);
@@ -175,4 +175,49 @@ bool ControlHangarTask::checkAndSetJustEntered(){
       justEntered = false;
     }
     return bak;
+}
+
+// Controlla se la temperatura ha superato una certa soglia (TEMP1 o TEMP2)
+unsigned int ControlHangarTask::checkTemp(float TEMP){
+
+    float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
+    bool tempHigh = (temp >= TEMP); //flag temperatura alta
+    unsigned int tempHighStart; //tempo in cui la temperatura è diventata alta
+    unsigned int tempHighElapsed; //tempo trascorso con temperatura alta
+
+    if (temp >= TEMP) {
+        if (!tempHigh) {            // appena superata la soglia
+            tempHigh = true;
+            tempHighStart = millis();
+    }    
+    
+    tempHighElapsed = millis() - tempHighStart;
+    } else {
+        tempHigh = false;
+        tempHighElapsed = 0;
+    }
+
+    return tempHighElapsed;
+}
+
+unsigned int ControlHangarTask::checkDist(int DIST, char OPERATOR){
+
+    int DDD = pSonar->getDistance();
+    
+    bool flagDist =
+        (OPERATOR == '>') ? (DDD > DIST) : //Se l'operatore è '>' controlla se la distanza è maggiore di DIST
+        (OPERATOR == '<') ? (DDD < DIST) : //Se l'operatore è '<' controlla se la distanza è minore di DIST
+        false;    // default
+
+    if (flagDist) { //condizione distanza verificata
+        if (!distCond) {
+            distCond = true;
+            distCondStart = millis();
+        }
+        distCondElapsed = millis() - distCondStart;
+    } else {
+        distCond = false;
+        distCondElapsed = 0;
+    }
+    return distCondElapsed;
 }
