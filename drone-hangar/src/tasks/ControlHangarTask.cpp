@@ -28,7 +28,7 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] IDLE"));
                 pLcd->print("DRONE INSIDE");
                 pMotor->setPosition(HD_CLOSE);
-                pContext->setDisplayState(DisplayState::IDLE);
+                pContext->setDisplayState(DisplayState::DRONE_INSIDE);
             }
 
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
@@ -63,6 +63,7 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (distanceD1 > T1){ 
                 pMotor->setPosition(HD_CLOSE); //Apre hangar
+                droneOutside = true;
                 pLcd->clear();
                 pLcd->print("DRONE OUT");
                 pContext->setDisplayState(DisplayState::DRONE_OUT);
@@ -112,7 +113,7 @@ void ControlHangarTask::tick(){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
                 pLcd->clear();
                 pLcd->print("DRONE INSIDE");
-                pContext->setDisplayState(DisplayState::IDLE);
+                pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                 setState(IDLE);
             }
 
@@ -133,11 +134,18 @@ void ControlHangarTask::tick(){
                 pContext->setDisplayState(DisplayState::ALARM);
                 setState(ALARM);
             } else if (temp < TEMP1){
+                if(droneOutside){
+                    pLcd->clear();
+                    pLcd->print("DRONE_OUT");
+                    pContext->setDisplayState(DisplayState::DRONE_OUT);
+                    setState(IDLE);
+                } else{
+                    pLcd->clear();
+                    pLcd->print("DRONE INSIDE");
+                    pContext->setDisplayState(DisplayState::DRONE_INSIDE);
+                    setState(IDLE);
+                }
                 pendingPreAlarm = false;
-                pLcd->clear();
-                pLcd->print("DRONE INSIDE");
-                pContext->setDisplayState(DisplayState::IDLE);
-                setState(IDLE);
             }
 
             break;
@@ -153,7 +161,7 @@ void ControlHangarTask::tick(){
 
             if (pButton->isPressed()){
                 pendingPreAlarm = false;
-                pContext->setDisplayState(DisplayState::IDLE);
+                pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                 setState(IDLE);
             }
 

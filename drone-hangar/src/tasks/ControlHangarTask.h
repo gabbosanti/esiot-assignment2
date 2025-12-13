@@ -33,15 +33,16 @@ private:
   Lcd* pLcd;
   Context* pContext;
 
-  bool pendingPreAlarm;
-  
+  bool pendingPreAlarm = false;
+  bool droneOutside = false;
+
   // TEMPERATURE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
-  bool  temp1Cond; unsigned int temp1Start;
-  bool  temp2Cond; unsigned int temp2Start;
+  bool  temp1Cond = false; unsigned int temp1Start = 0;
+  bool  temp2Cond = false; unsigned int temp2Start = 0;
 
   // DISTANCE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
-  bool  d1Cond; unsigned int d1Start;
-  bool  d2Cond; unsigned int d2Start;
+  bool  d1Cond = false; unsigned int d1Start = 0;
+  bool  d2Cond = false; unsigned int d2Start = 0;
 
   void setState(State state);
   long elapsedTimeInState();
