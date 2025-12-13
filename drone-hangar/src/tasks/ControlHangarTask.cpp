@@ -9,6 +9,11 @@
 #define RESET_TIME 500
 #define DRU_ACTIVATE 'OPEN DOOR'
 #define DRU_OPENING 'DRONE ARRIVED'
+#define ID_TEMP1 1
+#define ID_TEMP2 2
+#define ID_DIST1 1
+#define ID_DIST2 2
+
 ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
     pMotor(pMotor), pButton(pButton), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
@@ -26,7 +31,7 @@ void ControlHangarTask::tick(){
                 pContext->setDisplayState(DisplayState::IDLE);
             }
 
-            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
 
             if((elapsedT1 > T3) || pendingPreAlarm){
                 setState(PRE_ALARM);
@@ -51,10 +56,10 @@ void ControlHangarTask::tick(){
             }
             
             int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
-            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            unsigned int distanceD1 = checkDist(D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
+            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
             
-            if (DDD <= D1 && elapsedT1 > T3){
+            if (elapsedT1 > T3){
                 pendingPreAlarm = true; 
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (DDD > D1 && distanceD1 > T1){ 
@@ -73,7 +78,7 @@ void ControlHangarTask::tick(){
                 Logger.log(F("[CHT] DRONE_OUT"));
             }
 
-            //Se è rilevato il preallarme
+            //Se nella fase di TAKEOFF è stata rilevata una condizione di pre-allarme (TAKEOFF già avvenuto)
             if(pendingPreAlarm){
                 Logger.log(F("[CHT] MOVING TO PRE-ALARM")); //Utilizzare per debug
                 setState(PRE_ALARM);
@@ -99,10 +104,10 @@ void ControlHangarTask::tick(){
 
             int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
             float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-            unsigned int elapsedT1 = checkTemp(TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            unsigned int distanceD2 = checkDist(D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
+            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
 
-            if (DDD >= D2 && elapsedT1 > T3){
+            if (elapsedT1 > T3){
                 pendingPreAlarm = true; 
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (DDD < D2 && distanceD2 > T2){
@@ -123,7 +128,7 @@ void ControlHangarTask::tick(){
             }
             
             float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-            unsigned int elapsedT4 = checkTemp(TEMP2); //Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
+            unsigned int elapsedT4 = checkTemp(ID_TEMP2, TEMP2); //Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
 
             if (temp >= TEMP2 && elapsedT4 > T4){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
@@ -159,7 +164,7 @@ void ControlHangarTask::tick(){
     }
 }
 
-void ControlHangarTask::setState(int s){
+void ControlHangarTask::setState(State s){
     state = s; //Perchè da errore ?
     stateTimestamp = millis();
     justEntered = true;
@@ -177,47 +182,43 @@ bool ControlHangarTask::checkAndSetJustEntered(){
     return bak;
 }
 
-// Controlla se la temperatura ha superato una certa soglia (TEMP1 o TEMP2)
-unsigned int ControlHangarTask::checkTemp(float TEMP){
-
-    float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-    bool tempHigh = (temp >= TEMP); //flag temperatura alta
-    unsigned int tempHighStart; //tempo in cui la temperatura è diventata alta
-    unsigned int tempHighElapsed; //tempo trascorso con temperatura alta
-
-    if (temp >= TEMP) {
-        if (!tempHigh) {            // appena superata la soglia
-            tempHigh = true;
-            tempHighStart = millis();
-    }    
+// Controlla se la temperatura ha superato una certa soglia (TEMP1 o TEMP2) e per quanto tempo consecutivamente
+unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia) {
     
-    tempHighElapsed = millis() - tempHighStart;
-    } else {
-        tempHigh = false;
-        tempHighElapsed = 0;
-    }
+    float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
 
-    return tempHighElapsed;
+    bool  &flag   = (id == ID_TEMP1) ? temp1Cond : temp2Cond; // Seleziona il flag corretto in base all'id
+    unsigned int  &start  = (id == ID_TEMP1) ? temp1Start : temp2Start; // Seleziona il tempo di inizio corretto in base all'id
+
+    if (temp >= soglia) { 
+        if (!flag) { //Se la condizione era falsa (es. prima volta che viene soddisfatta o è stata resettata)
+            flag = true; 
+            start = millis(); 
+        }
+        return millis() - start;
+    } else {
+        flag = false;
+        return 0;
+    }
 }
 
-unsigned int ControlHangarTask::checkDist(int DIST, char OPERATOR){
+// Controlla se la distanza ha superato una certa soglia (D1 o D2) e per quanto tempo consecutivamente
+unsigned int ControlHangarTask::checkDist(unsigned int id, unsigned int soglia, char op){
 
-    int DDD = pSonar->getDistance();
-    
-    bool flagDist =
-        (OPERATOR == '>') ? (DDD > DIST) : //Se l'operatore è '>' controlla se la distanza è maggiore di DIST
-        (OPERATOR == '<') ? (DDD < DIST) : //Se l'operatore è '<' controlla se la distanza è minore di DIST
-        false;    // default
+     int d = pSonar->getDistance();
 
-    if (flagDist) { //condizione distanza verificata
-        if (!distCond) {
-            distCond = true;
-            distCondStart = millis();
-        }
-        distCondElapsed = millis() - distCondStart;
+    bool  &flag   = (id == ID_DIST1) ? d1Cond   : d2Cond;
+    auto  &start  = (id == ID_DIST1) ? d1Start  : d2Start;
+
+    bool cond = (op == '>') ? (d > soglia)
+              : (op == '<') ? (d < soglia)
+                            : false;
+
+    if (cond) {
+        if (!flag) { flag = true; start = millis(); }
+        return millis() - start;
     } else {
-        distCond = false;
-        distCondElapsed = 0;
+        flag = false;
+        return 0;
     }
-    return distCondElapsed;
 }

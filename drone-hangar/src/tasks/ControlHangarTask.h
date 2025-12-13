@@ -1,5 +1,5 @@
-#ifndef __SWEEPING_TASK__
-#define __SWEEPING_TASK__
+#ifndef __CONTROL_HANGAR_TASK__
+#define __CONTROL_HANGAR_TASK__
 
 #include "kernel/Task.h"
 #include "devices/ServoMotor.h"
@@ -16,16 +16,12 @@ class ControlHangarTask: public Task {
 public:
   ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext); 
   void tick();
-  unsigned int checkTemp(float TEMP);
-  unsigned int checkDist(int DIST, char OPERATOR);
+  unsigned int checkTemp(unsigned int ID, float TEMP);
+  unsigned int checkDist(unsigned int ID, unsigned int DIST, char OPERATOR);
 
-private:  
-  void setState(int state);
-  long elapsedTimeInState();
-  void log(const String& msg);
-  bool checkAndSetJustEntered();
-    
-  enum { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM } state;
+private:     
+  enum State { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM };
+  State state;
   long stateTimestamp;
   bool justEntered;
 
@@ -39,14 +35,18 @@ private:
 
   bool pendingPreAlarm;
   
-  //Per il controllo della distanza
-  bool distCond = false; //flag condizione distanza
-  unsigned long distCondStart = 0;
-  unsigned long distCondElapsed = 0;
+  // TEMPERATURE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
+  bool  temp1Cond; unsigned int temp1Start;
+  bool  temp2Cond; unsigned int temp2Start;
 
-  //Per il controllo della temperatura
+  // DISTANCE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
+  bool  d1Cond; unsigned int d1Start;
+  bool  d2Cond; unsigned int d2Start;
 
-
+  void setState(State state);
+  long elapsedTimeInState();
+  void log(const String& msg);
+  bool checkAndSetJustEntered();
 };
 
 #endif
