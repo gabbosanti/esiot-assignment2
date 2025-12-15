@@ -1,5 +1,5 @@
 #include "HWPlatform.h"
-#include <Arduino.h>
+#include "Arduino.h"
 #include "devices/ButtonImpl.h"
 #include "kernel/MsgService.h"
 #include "config.h"
@@ -63,17 +63,52 @@ TempSensorTMP36* HWPlatform::getTempSensor(){
   return this->pTempSensor;
 }
 
-//Testing HW components (da fare meglio)
-void HWPlatform::test(){
-  bool btPressed = pButton->isPressed();
-  pLed1->switchOn();
+//Funzioni di test per ogni componente :
+void HWPlatform::testButton() {
+  bool pressed = pButton->isPressed();
+  Logger.log(String("Button: ") + (pressed ? "pressed" : "not pressed"));
+}
+
+void HWPlatform::testMotor() {
   pMotor->on();
   pMotor->setPosition(90);
-  Logger.log("Button: " + String(btPressed ? "pressed" : " not pressed"));
-  delay(1000);
+  delay(500);
   pMotor->setPosition(0);
-  delay(1000);
+  delay(500);
   pMotor->off();
-  pLed1->switchOff();
+}
+
+void HWPlatform::testSonar() {
+  double d = pSonar->getDistance();
+  Logger.log("Sonar distance: " + String(d));
+}
+
+void HWPlatform::testPir() {
+  Logger.log("Pir calibrating ...");
+  pPirSensor->calibrate();
+  Logger.log("Calibration ended");
+  pPirSensor->sync();
+  Logger.log(pPirSensor->isDetected() ? "Motion detected" : "No motion");
+}
+
+void HWPlatform::testTemp() {
+  float t = pTempSensor->getTemperature();
+  Logger.log("Temperature: " + String(t));
+}
+
+//Testing dei componenti : uso la serial line per scegliere quale componente testare
+void HWPlatform::test(){
+
+   if (Serial.available()) {
+    char c = Serial.read();
+    switch (c) {
+      case 'b': testButton(); break;
+      case 'm': testMotor(); break;
+      case 's': testSonar(); break;
+      case 'p': testPir(); break;
+      case 't': testTemp(); break;
+    }
+  }
+
 }
 

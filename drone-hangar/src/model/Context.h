@@ -7,6 +7,7 @@
 class Context {
 
 public:
+    Context();
     void setDisplayState(DisplayState s);
     DisplayState getDisplayState();
 private:

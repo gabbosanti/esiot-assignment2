@@ -7,15 +7,15 @@
 #define BWD_TIME 1000
 #define START_TIME 100
 #define RESET_TIME 500
-#define DRU_ACTIVATE 'OPEN DOOR'
-#define DRU_OPENING 'DRONE ARRIVED'
+#define DRU_ACTIVATE "ACTIVATE"
+#define DRU_OPENING "OPEN"
 #define ID_TEMP1 1
 #define ID_TEMP2 2
 #define ID_DIST1 1
 #define ID_DIST2 2
 
 ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
-    pMotor(pMotor), pButton(pButton), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
+   pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
     pendingPreAlarm = false;
 }
@@ -37,14 +37,18 @@ void ControlHangarTask::tick(){
                 setState(PRE_ALARM);
             }
 
-            else if (Serial.read() == DRU_ACTIVATE){ //Se è arrivato il comando di apertura hangar
-                
-                pMotor->on(); //Attiva servo
-                pMotor->setPosition(HD_OPEN); //Apre l'hangar
+            else if  (Serial.available() > 0) {
+                String cmd = Serial.readStringUntil('\n');  // legge una riga
+                cmd.trim();                                 // toglie spazi/\r
+
+                if (cmd == DRU_ACTIVATE) {
+                pMotor->on();
+                pMotor->setPosition(HD_OPEN);
                 pLcd->clear();
-                pLcd->print("TAKEOFF");       
+                pLcd->print("TAKEOFF");
                 pContext->setDisplayState(DisplayState::TAKEOFF);
                 setState(TAKEOFF);
+                }
             }
 
             break;
@@ -85,13 +89,18 @@ void ControlHangarTask::tick(){
             } 
             
             //Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
-            else if(pPir->isDetected() && (Serial.read() == DRU_OPENING) ){ 
-
-                pMotor->setPosition(HD_OPEN); //Apre hangar
-                pLcd->clear();
-                pLcd->print("LANDING");
-                pContext->setDisplayState(DisplayState::LANDING);
-                setState(LANDING);
+            else if(pPir->isDetected()){ 
+                if (Serial.available() > 0) {
+                    String cmd = Serial.readStringUntil('\n');
+                    cmd.trim();
+                    if (cmd == DRU_OPENING) {
+                        pMotor->setPosition(HD_OPEN); //Apre hangar
+                        pLcd->clear();
+                        pLcd->print("LANDING");
+                        pContext->setDisplayState(DisplayState::LANDING);
+                        setState(LANDING);
+                    }
+                }
             }
 
             break;
@@ -211,7 +220,7 @@ unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia) {
 // Controlla se la distanza ha superato una certa soglia (D1 o D2) e per quanto tempo consecutivamente
 unsigned int ControlHangarTask::checkDist(unsigned int id, unsigned int soglia, char op){
 
-     int d = pSonar->getDistance();
+    unsigned  d = pSonar->getDistance();
 
     bool  &flag   = (id == ID_DIST1) ? d1Cond   : d2Cond;
     auto  &start  = (id == ID_DIST1) ? d1Start  : d2Start;

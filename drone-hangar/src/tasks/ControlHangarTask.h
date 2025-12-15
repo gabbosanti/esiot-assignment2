@@ -20,11 +20,6 @@ public:
   unsigned int checkDist(unsigned int ID, unsigned int DIST, char OPERATOR);
 
 private:     
-  enum State { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM };
-  State state;
-  long stateTimestamp;
-  bool justEntered;
-
   Button* pButton;
   ServoMotor* pMotor;
   Sonar* pSonar;
@@ -32,6 +27,11 @@ private:
   TempSensorTMP36* pTempSensor;
   Lcd* pLcd;
   Context* pContext;
+
+  enum State { IDLE, TAKEOFF, DRONE_OUT, LANDING, PRE_ALARM, ALARM };
+  State state;
+  long stateTimestamp;
+  bool justEntered;
 
   bool pendingPreAlarm = false;
   bool droneOutside = false;

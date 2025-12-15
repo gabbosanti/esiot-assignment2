@@ -8,7 +8,7 @@
 #include "tasks/ControlHangarTask.h"
 #include "tasks/BlinkingTask.h"
 
-// #define __TESTING_HW__
+#define __TESTING_HW__
 
 Scheduler sched;
 HWPlatform* pHWPlatform;

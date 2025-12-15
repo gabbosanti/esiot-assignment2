@@ -4,12 +4,12 @@
 #include "kernel/Logger.h"
 
 BlinkingTask::BlinkingTask(Led* pLed1, Led* pLed2, Led* pLed3, Context* pContext): 
-    pContext(pContext), pLed1(pLed1), pLed2(pLed2), pLed3(pLed3){
+    pLed1(pLed1), pLed2(pLed2), pLed3(pLed3), pContext(pContext){
     setState(IDLE);
 }
   
 void BlinkingTask::tick(){
-
+/*
     bool inBlinkingPhase = pContext->isStarted();
 
     if(!inBlinkingPhase && state != IDLE){
@@ -87,10 +87,12 @@ void BlinkingTask::tick(){
         break;
     
     }
+*/
+
 }
 
 
-void BlinkingTask::setState(int s){
+void BlinkingTask::setState(State s){
     state = s; //Perchè da errore ?
     stateTimestamp = millis();
     justEntered = true;

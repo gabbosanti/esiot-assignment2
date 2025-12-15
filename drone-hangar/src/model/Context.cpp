@@ -2,7 +2,7 @@
 
 Context::Context(){
     // inizializza lo stato di visualizzazione predefinito
-    displayState = DisplayState::IDLE;
+    displayState = DisplayState::DRONE_INSIDE;
 }
 
 void Context::setDisplayState(DisplayState s){

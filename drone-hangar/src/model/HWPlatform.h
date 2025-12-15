@@ -28,6 +28,16 @@ public:
   Lcd* getLcd();
   TempSensorTMP36* getTempSensor();
 
+  void testButton();
+  void testLed1();
+  void testLed2();
+  void testLed3();
+  void testMotor();
+  void testPir();
+  void testSonar();
+  void testLcd();
+  void testTemp();
+
 private:
   Button* pButton; //Button for reset
   Led* pLed1; //LED1 indicator
