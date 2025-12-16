@@ -65,8 +65,12 @@ TempSensorTMP36* HWPlatform::getTempSensor(){
 
 //Funzioni di test per ogni componente :
 void HWPlatform::testButton() {
-  bool pressed = pButton->isPressed();
-  Logger.log(String("Button: ") + (pressed ? "pressed" : "not pressed"));
+    static bool last = false;
+    bool now = pButton->isPressed();
+    if (now != last) {
+        Logger.log(String("Button: ") + (now ? "pressed" : "released"));
+        last = now;
+    }
 }
 
 void HWPlatform::testMotor() {
@@ -87,13 +91,23 @@ void HWPlatform::testPir() {
   Logger.log("Pir calibrating ...");
   pPirSensor->calibrate();
   Logger.log("Calibration ended");
-  pPirSensor->sync();
-  Logger.log(pPirSensor->isDetected() ? "Motion detected" : "No motion");
+  static bool last = false;
+    pPirSensor->sync();              // aggiorna stato interno
+    bool now = pPirSensor->isDetected();
+    if (now != last) {
+        Logger.log(now ? "Motion detected" : "No motion");
+        last = now;
+    }
 }
 
 void HWPlatform::testTemp() {
   float t = pTempSensor->getTemperature();
   Logger.log("Temperature: " + String(t));
+}
+
+void HWPlatform::testLcd(){
+  pLcd->init();
+  pLcd->print("PROVA");
 }
 
 //Testing dei componenti : uso la serial line per scegliere quale componente testare
@@ -107,6 +121,7 @@ void HWPlatform::test(){
       case 's': testSonar(); break;
       case 'p': testPir(); break;
       case 't': testTemp(); break;
+      case 'l': testLcd(); break;
     }
   }
 

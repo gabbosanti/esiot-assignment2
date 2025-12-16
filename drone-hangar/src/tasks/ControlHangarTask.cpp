@@ -3,10 +3,6 @@
 #include "config.h"
 #include "kernel/Logger.h"
 
-#define FWD_TIME 2000
-#define BWD_TIME 1000
-#define START_TIME 100
-#define RESET_TIME 500
 #define DRU_ACTIVATE "ACTIVATE"
 #define DRU_OPENING "OPEN"
 #define ID_TEMP1 1
@@ -17,6 +13,7 @@
 ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
    pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
+    pLcd->init();
     pendingPreAlarm = false;
 }
   
@@ -32,7 +29,7 @@ void ControlHangarTask::tick(){
             }
 
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-
+            Logger.log("TEMPERATURE : " + String(pTempSensor->getTemperature()));
             if((elapsedT1 > T3) || pendingPreAlarm){
                 setState(PRE_ALARM);
             }
@@ -41,13 +38,15 @@ void ControlHangarTask::tick(){
                 String cmd = Serial.readStringUntil('\n');  // legge una riga
                 cmd.trim();                                 // toglie spazi/\r
 
+                Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
                 if (cmd == DRU_ACTIVATE) {
-                pMotor->on();
-                pMotor->setPosition(HD_OPEN);
-                pLcd->clear();
-                pLcd->print("TAKEOFF");
-                pContext->setDisplayState(DisplayState::TAKEOFF);
-                setState(TAKEOFF);
+                    Logger.log("Messaggio corretto");
+                    pMotor->on();
+                    pMotor->setPosition(HD_OPEN);
+                    pLcd->clear();
+                    pLcd->print("TAKEOFF");
+                    pContext->setDisplayState(DisplayState::TAKEOFF);
+                    setState(TAKEOFF);
                 }
             }
 
@@ -60,9 +59,11 @@ void ControlHangarTask::tick(){
             }
             
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+            Logger.log("TEMPERATURA : " + String(pTempSensor->getTemperature()));
             unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
+            Logger.log("DISTANZA : " + String(pSonar->getDistance()));
             
-            if (elapsedT1 > T3){
+            if (elapsedT1 > T3 && !pendingPreAlarm){ //Altrimenti entra sempre qui (ciclo infinito)
                 pendingPreAlarm = true; 
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (distanceD1 > T1){ 
@@ -90,10 +91,15 @@ void ControlHangarTask::tick(){
             
             //Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
             else if(pPir->isDetected()){ 
+                Logger.log("PIR ha rilevato un movimento");
                 if (Serial.available() > 0) {
                     String cmd = Serial.readStringUntil('\n');
                     cmd.trim();
+
+                    Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
+
                     if (cmd == DRU_OPENING) {
+                        Logger.log("Messaggio corretto");
                         pMotor->setPosition(HD_OPEN); //Apre hangar
                         pLcd->clear();
                         pLcd->print("LANDING");
