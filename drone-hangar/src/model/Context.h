@@ -10,8 +10,13 @@ public:
     Context();
     void setDisplayState(DisplayState s);
     DisplayState getDisplayState();
+    
+    void setPendingPreAlarm(bool flag_prealarm);
+    bool isPendingPreAlarm();
+
 private:
     DisplayState displayState;
+    bool pendingPreAlarm;
 
 };
 

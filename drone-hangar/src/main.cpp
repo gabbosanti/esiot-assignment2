@@ -29,11 +29,11 @@ void setup() {
   Task* pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getSonar(), pHWPlatform->getPirSensor(), pHWPlatform->getTempSensor(), pHWPlatform->getLcd(), pContext);
   pControlHangarTask->init(50);
 
-  //Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
-  //pBlinkingTask->init(100);
+  Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
+  pBlinkingTask->init(100);
 
   sched.addTask(pControlHangarTask);
-  //sched.addTask(pBlinkingTask);
+  sched.addTask(pBlinkingTask);
 #endif
 
 #ifndef __TESTING_HW__

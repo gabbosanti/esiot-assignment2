@@ -9,15 +9,12 @@ BlinkingTask::BlinkingTask(Led* pLed1, Led* pLed2, Led* pLed3, Context* pContext
 }
   
 void BlinkingTask::tick(){
-/*
-    bool inBlinkingPhase = pContext->isStarted();
 
-    if(!inBlinkingPhase && state != IDLE){
-        setState(IDLE);
-    }
+    DisplayState display = pContext->getDisplayState();
 
     switch (state){   
     case IDLE: {
+
         if (this->checkAndSetJustEntered()){
             pLed1->switchOn();
             pLed2->switchOff();
@@ -25,60 +22,71 @@ void BlinkingTask::tick(){
             Logger.log(F("[BT] L1 ON, L2 OFF, L3 OFF"));
 
         }
-        if (inBlinkingPhase()){
-            setState(BLINK_OFF);
+
+        if (display == DisplayState::TAKEOFF || display == DisplayState::LANDING){
+            setState(L2_ON);   
         }
+
         break;
     }
     case L2_ON: {
+        
         if (this->checkAndSetJustEntered()){
-            pLed->switchOff();
-            Logger.log(F("[BT] BLINK_OFF"));
+            pLed2->switchOn();
+            Logger.log(F("[BT] L1 ON L2 ON L3 OFF"));
         }
-        if (elapsedTimeInState() >= (L2_BLINK / 2)){
-            setState(BLINK_ON);
+
+        //Se ho superato il periodo
+        if (elapsedTimeInState() >= (L2_BLINK)){
+            setState(L2_OFF);
         }  
-        if(!inBlinkingPhase){
+
+        if(pContext->isPendingPreAlarm()){
+            pLed2->switchOff();
+            setState(PRE_ALARM);
+        } else if(display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE){
+            pLed2->switchOff();
             setState(IDLE);
         }
+
         break;
     }
     case L2_OFF: {
         if (this->checkAndSetJustEntered()){
-            pLed->switchOn();
-            Logger.log(F("[BT] BLINK_ON"));
+            pLed2->switchOff();
+            Logger.log(F("[BT] L1 ON L2 OFF L3 OFF"));
         }
-        if (elapsedTimeInState() >= (L2_BLINK / 2)){
-            setState(BLINK_OFF);
+
+        if (elapsedTimeInState() >= (L2_BLINK)){
+            setState(L2_ON);
         }  
-        if(!inBlinkingPhase){
+        
+        if(pContext->isPendingPreAlarm()){
+            setState(PRE_ALARM);
+        } else if(display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE){
             setState(IDLE);
         }
+
         break;
     }
     case PRE_ALARM: {
         if (this->checkAndSetJustEntered()){
-            pLed->switchOn();
-            Logger.log(F("[BT] BLINK_ON"));
+            Logger.log(F("[BT] PRE_ALARM"));
         }
-        if (elapsedTimeInState() >= (L2_BLINK / 2)){
-            setState(BLINK_OFF);
+        if (pContext->getDisplayState() == DisplayState::ALARM){
+            setState(LED_ALARM);
         }  
-        if(!inBlinkingPhase){
-            setState(IDLE);
-        }
+        
         break;
     }
     case LED_ALARM: {
         if (this->checkAndSetJustEntered()){
-            pLed->switchOn();
-            Logger.log(F("[BT] BLINK_ON"));
+            pLed3->switchOn();
+            Logger.log(F("[BT] LED_ALARM"));
         }
-        if (elapsedTimeInState() >= (L2_BLINK / 2)){
-            setState(BLINK_OFF);
-        }  
-        if(!inBlinkingPhase){
-            setState(IDLE);
+        if (pContext->getDisplayState() == DisplayState::ALARM){
+            pLed3->switchOff();
+            setState(LED_ALARM);
         }
         break;
     }
@@ -87,7 +95,6 @@ void BlinkingTask::tick(){
         break;
     
     }
-*/
 
 }
 

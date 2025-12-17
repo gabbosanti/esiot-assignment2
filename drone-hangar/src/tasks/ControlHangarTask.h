@@ -33,7 +33,6 @@ private:
   long stateTimestamp;
   bool justEntered;
 
-  bool pendingPreAlarm = false;
   bool droneOutside = false;
 
   // TEMPERATURE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)

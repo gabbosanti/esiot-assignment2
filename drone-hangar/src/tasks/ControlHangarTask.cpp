@@ -14,7 +14,7 @@ ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar*
    pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
     pLcd->init();
-    pendingPreAlarm = false;
+    pContext->setPendingPreAlarm(false);
 }
   
 void ControlHangarTask::tick(){
@@ -30,7 +30,7 @@ void ControlHangarTask::tick(){
 
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
             Logger.log("TEMPERATURE : " + String(pTempSensor->getTemperature()));
-            if((elapsedT1 > T3) || pendingPreAlarm){
+            if((elapsedT1 > T3) || pContext->isPendingPreAlarm()){
                 setState(PRE_ALARM);
             }
 
@@ -63,8 +63,8 @@ void ControlHangarTask::tick(){
             unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
             Logger.log("DISTANZA : " + String(pSonar->getDistance()));
             
-            if (elapsedT1 > T3 && !pendingPreAlarm){ //Altrimenti entra sempre qui (ciclo infinito)
-                pendingPreAlarm = true; 
+            if (elapsedT1 > T3 && !pContext->isPendingPreAlarm()){ //Altrimenti entra sempre qui (ciclo infinito)
+                pContext->setPendingPreAlarm(true);
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (distanceD1 > T1){ 
                 pMotor->setPosition(HD_CLOSE); //Apre hangar
@@ -84,7 +84,7 @@ void ControlHangarTask::tick(){
             }
 
             //Se nella fase di TAKEOFF è stata rilevata una condizione di pre-allarme (TAKEOFF già avvenuto)
-            if(pendingPreAlarm){
+            if(pContext->isPendingPreAlarm()){
                 Logger.log(F("[CHT] MOVING TO PRE-ALARM")); //Utilizzare per debug
                 setState(PRE_ALARM);
             } 
@@ -122,7 +122,7 @@ void ControlHangarTask::tick(){
             unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
 
             if (elapsedT1 > T3){
-                pendingPreAlarm = true; 
+                pContext->setPendingPreAlarm(true); 
                 Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
             } else if (DDD < D2 && distanceD2 > T2){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
@@ -160,7 +160,7 @@ void ControlHangarTask::tick(){
                     pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                     setState(IDLE);
                 }
-                pendingPreAlarm = false;
+                pContext->setPendingPreAlarm(false);
             }
 
             break;
@@ -175,7 +175,7 @@ void ControlHangarTask::tick(){
             }
 
             if (pButton->isPressed()){
-                pendingPreAlarm = false;
+                pContext->setPendingPreAlarm(false);
                 pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                 setState(IDLE);
             }
