@@ -6,7 +6,7 @@
 #include "devices/Button.h"
 #include "devices/Pir.h"
 #include "devices/Sonar.h"
-#include "devices/TempSensorTMP36.h"
+#include "devices/TempSensorMock.h"
 #include "devices/Lcd.h"
 #include "model/Context.h"
 #include "Arduino.h"
@@ -14,7 +14,7 @@
 class ControlHangarTask: public Task {
 
 public:
-  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext); 
+  ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorMock* pTempSensor, Lcd* pLcd, Context* pContext); 
   void tick();
   unsigned int checkTemp(unsigned int ID, float TEMP);
   unsigned int checkDist(unsigned int ID, unsigned int DIST, char OPERATOR);
@@ -24,7 +24,7 @@ private:
   ServoMotor* pMotor;
   Sonar* pSonar;
   Pir* pPir;
-  TempSensorTMP36* pTempSensor;
+  TempSensorMock* pTempSensor;
   Lcd* pLcd;
   Context* pContext;
 

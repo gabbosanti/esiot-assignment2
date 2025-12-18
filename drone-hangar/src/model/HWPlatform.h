@@ -9,6 +9,7 @@
 #include "devices/Sonar.h"
 #include "devices/TempSensorTMP36.h"
 #include "devices/Lcd.h"
+#include "devices/TempSensorMock.h"
 
 class HWPlatform {
 
@@ -26,7 +27,7 @@ public:
   Pir* getPirSensor();
   Sonar* getSonar();
   Lcd* getLcd();
-  TempSensorTMP36* getTempSensor();
+  TempSensorMock* getTempSensor();
 
   void testButton();
   void testLed1();
@@ -46,7 +47,7 @@ private:
   ServoMotor* pMotor; //Servo motor for opening/closing the hangar door
   Pir* pPirSensor; //PIR presence sensor
   Sonar* pSonar; //Ultrasonic distance sensor
-  TempSensorTMP36* pTempSensor; //Temperature sensor
+  TempSensorMock* pTempSensor; //Temperature sensor
   Lcd* pLcd; //LCD display
 
 };

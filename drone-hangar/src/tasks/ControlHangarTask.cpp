@@ -10,7 +10,7 @@
 #define ID_DIST1 1
 #define ID_DIST2 2
 
-ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
+ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorMock* pTempSensor, Lcd* pLcd, Context* pContext): 
    pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
     setState(IDLE);
     pLcd->init();
@@ -29,7 +29,6 @@ void ControlHangarTask::tick(){
             }
 
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            Logger.log("TEMPERATURE : " + String(pTempSensor->getTemperature()));
             if((elapsedT1 > T3) || pContext->isPendingPreAlarm()){
                 setState(PRE_ALARM);
             }
@@ -59,7 +58,6 @@ void ControlHangarTask::tick(){
             }
             
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            Logger.log("TEMPERATURA : " + String(pTempSensor->getTemperature()));
             unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
             Logger.log("DISTANZA : " + String(pSonar->getDistance()));
             
@@ -143,7 +141,7 @@ void ControlHangarTask::tick(){
             
             float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
             unsigned int elapsedT4 = checkTemp(ID_TEMP2, TEMP2); //Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
-
+            
             if (temp >= TEMP2 && elapsedT4 > T4){
                 pMotor->setPosition(HD_CLOSE); //Chiude hangar
                 pContext->setDisplayState(DisplayState::ALARM);
