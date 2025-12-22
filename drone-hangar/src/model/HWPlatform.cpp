@@ -8,9 +8,10 @@
 #include "devices/ServoMotorImpl.h"
 #include "kernel/Logger.h"
 
-void wakeUp(){}
+void wakeUp() {}
 
-HWPlatform::HWPlatform(){
+HWPlatform::HWPlatform()
+{
   pButton = new ButtonImpl(RESET_BUTTON_PIN);
   pLed1 = new Led(L1_PIN);
   pLed2 = new Led(L2_PIN);
@@ -19,61 +20,74 @@ HWPlatform::HWPlatform(){
   pPirSensor = new Pir(DPD_PIR_PIN);
   pSonar = new Sonar(DDD_ECHO_PIN, DDD_TRIG_PIN, 30000);
   pTempSensor = new TempSensorMock();
-  pLcd = new Lcd(0x27, 16, 2); 
+  pLcd = new Lcd(0x27, 16, 2);
 }
 
-void HWPlatform::init(){
+void HWPlatform::init()
+{
 }
 
-//Getters
+// Getters
 
-Button* HWPlatform::getButton(){
+Button *HWPlatform::getButton()
+{
   return this->pButton;
 }
 
-Led* HWPlatform::getLed1(){
+Led *HWPlatform::getLed1()
+{
   return this->pLed1;
 }
 
-Led* HWPlatform::getLed2(){
+Led *HWPlatform::getLed2()
+{
   return this->pLed2;
 }
 
-Led* HWPlatform::getLed3(){
+Led *HWPlatform::getLed3()
+{
   return this->pLed3;
 }
 
-Pir* HWPlatform::getPirSensor(){
+Pir *HWPlatform::getPirSensor()
+{
   return this->pPirSensor;
 }
 
-Sonar* HWPlatform::getSonar(){
+Sonar *HWPlatform::getSonar()
+{
   return this->pSonar;
 }
 
-ServoMotor* HWPlatform::getMotor(){
+ServoMotor *HWPlatform::getMotor()
+{
   return this->pMotor;
 }
 
-Lcd* HWPlatform::getLcd(){
+Lcd *HWPlatform::getLcd()
+{
   return this->pLcd;
-} 
+}
 
-TempSensorMock* HWPlatform::getTempSensor(){
+TempSensorMock *HWPlatform::getTempSensor()
+{
   return this->pTempSensor;
 }
 
-//Funzioni di test per ogni componente :
-void HWPlatform::testButton() {
-    static bool last = false;
-    bool now = pButton->isPressed();
-    if (now != last) {
-        Logger.log(String("Button: ") + (now ? "pressed" : "released"));
-        last = now;
-    }
+// Funzioni di test per ogni componente :
+void HWPlatform::testButton()
+{
+  static bool last = false;
+  bool now = pButton->isPressed();
+  if (now != last)
+  {
+    Logger.log(String("Button: ") + (now ? "pressed" : "released"));
+    last = now;
+  }
 }
 
-void HWPlatform::testMotor() {
+void HWPlatform::testMotor()
+{
   pMotor->on();
   pMotor->setPosition(90);
   delay(500);
@@ -82,48 +96,66 @@ void HWPlatform::testMotor() {
   pMotor->off();
 }
 
-void HWPlatform::testSonar() {
+void HWPlatform::testSonar()
+{
   double d = pSonar->getDistance();
   Logger.log("Sonar distance: " + String(d));
 }
 
-void HWPlatform::testPir() {
+void HWPlatform::testPir()
+{
   Logger.log("Pir calibrating ...");
   pPirSensor->calibrate();
   Logger.log("Calibration ended");
   static bool last = false;
-    pPirSensor->sync();              // aggiorna stato interno
-    bool now = pPirSensor->isDetected();
-    if (now != last) {
-        Logger.log(now ? "Motion detected" : "No motion");
-        last = now;
-    }
+  pPirSensor->sync(); // aggiorna stato interno
+  bool now = pPirSensor->isDetected();
+  if (now != last)
+  {
+    Logger.log(now ? "Motion detected" : "No motion");
+    last = now;
+  }
 }
 
-void HWPlatform::testTemp() {
+void HWPlatform::testTemp()
+{
   float t = pTempSensor->getTemperature();
   Logger.log("Temperature: " + String(t));
 }
 
-void HWPlatform::testLcd(){
+void HWPlatform::testLcd()
+{
   pLcd->init();
   pLcd->print("PROVA");
 }
 
-//Testing dei componenti : uso la serial line per scegliere quale componente testare
-void HWPlatform::test(){
+// Testing dei componenti : uso la serial line per scegliere quale componente testare
+void HWPlatform::test()
+{
 
-   if (Serial.available()) {
+  if (Serial.available())
+  {
     char c = Serial.read();
-    switch (c) {
-      case 'b': testButton(); break;
-      case 'm': testMotor(); break;
-      case 's': testSonar(); break;
-      case 'p': testPir(); break;
-      case 't': testTemp(); break;
-      case 'l': testLcd(); break;
+    switch (c)
+    {
+    case 'b':
+      testButton();
+      break;
+    case 'm':
+      testMotor();
+      break;
+    case 's':
+      testSonar();
+      break;
+    case 'p':
+      testPir();
+      break;
+    case 't':
+      testTemp();
+      break;
+    case 'l':
+      testLcd();
+      break;
     }
   }
-
 }
-

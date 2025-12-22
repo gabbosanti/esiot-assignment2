@@ -3,12 +3,13 @@
 
 #include "Arduino.h"
 
-
 class LoggerService {
     
 public: 
-  
   void log(const String& msg);
+
+private:
+    String lastMsg;
 };
 
 extern LoggerService Logger;

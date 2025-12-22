@@ -11,25 +11,27 @@
 #define __TESTING_HW__
 
 Scheduler sched;
-HWPlatform* pHWPlatform;
-Context* pContext;
+HWPlatform *pHWPlatform;
+Context *pContext;
 
-void setup() {
+void setup()
+{
+
   MsgService.init();
   sched.init(50);
 
   Logger.log(":::::: Smart Drone Hangar ::::");
-  
+
   pHWPlatform = new HWPlatform();
   pHWPlatform->init();
 
 #ifdef __TESTING_HW__
   pContext = new Context();
 
-  Task* pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getSonar(), pHWPlatform->getPirSensor(), pHWPlatform->getTempSensor(), pHWPlatform->getLcd(), pContext);
+  Task *pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getSonar(), pHWPlatform->getPirSensor(), pHWPlatform->getTempSensor(), pHWPlatform->getLcd(), pContext);
   pControlHangarTask->init(50);
 
-  Task* pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
+  Task *pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
   pBlinkingTask->init(100);
 
   sched.addTask(pControlHangarTask);
@@ -38,12 +40,13 @@ void setup() {
 
 #ifndef __TESTING_HW__
   /* Testing */
-  Task* pTestHWTask = new TestHWTask(pHWPlatform);
+  Task *pTestHWTask = new TestHWTask(pHWPlatform);
   pTestHWTask->init(50);
   sched.addTask(pTestHWTask);
 #endif
 }
 
-void loop() {
-    sched.schedule();
+void loop()
+{
+  sched.schedule();
 }
