@@ -59,7 +59,6 @@ void ControlHangarTask::tick(){
             
             unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
             unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
-            Logger.log("DISTANZA : " + String(pSonar->getDistance()));
             
             if (elapsedT1 > T3 && !pContext->isPendingPreAlarm()){ //Altrimenti entra sempre qui (ciclo infinito)
                 pContext->setPendingPreAlarm(true);
@@ -222,9 +221,10 @@ unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia) {
 }
 
 // Controlla se la distanza ha superato una certa soglia (D1 o D2) e per quanto tempo consecutivamente
-unsigned int ControlHangarTask::checkDist(unsigned int id, unsigned int soglia, char op){
+unsigned int ControlHangarTask::checkDist(unsigned int id, float soglia, char op){
 
     unsigned  d = pSonar->getDistance();
+    Logger.log("DISTANZA : " + String(pSonar->getDistance()));
 
     bool  &flag   = (id == ID_DIST1) ? d1Cond   : d2Cond;
     auto  &start  = (id == ID_DIST1) ? d1Start  : d2Start;

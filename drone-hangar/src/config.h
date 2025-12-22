@@ -33,8 +33,8 @@
 //CONFIG PARAMETERS
 #define L2_BLINK 500
 
-#define D1 20
-#define D2 5
+#define D1 0.20
+#define D2 0.05
 
 #define T1 1500
 #define T2 2000

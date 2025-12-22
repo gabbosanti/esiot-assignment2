@@ -17,7 +17,7 @@ public:
   ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir* pPir, TempSensorMock* pTempSensor, Lcd* pLcd, Context* pContext); 
   void tick();
   unsigned int checkTemp(unsigned int ID, float TEMP);
-  unsigned int checkDist(unsigned int ID, unsigned int DIST, char OPERATOR);
+  unsigned int checkDist(unsigned int ID, float DIST, char OPERATOR);
 
 private:     
   Button* pButton;
