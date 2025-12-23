@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
+import java.awt.Color;
 
 import javax.swing.*;
 
@@ -60,7 +61,7 @@ class DashboardView extends JFrame implements ActionListener  {
 		mainPanel.add(monitorPanel);
 		mainPanel.add(controlPanel);
 		this.getContentPane().add(mainPanel);
-		
+	}	
 	
 	public void display() {
 		SwingUtilities.invokeLater(() -> {
@@ -85,6 +86,7 @@ class DashboardView extends JFrame implements ActionListener  {
 
 	public void setDistance(String distance){
 		SwingUtilities.invokeLater(() -> lblDistance.setText(distance + " m"));
+	}
 
 		@Override
 		public void actionPerformed(ActionEvent ev){
@@ -95,46 +97,5 @@ class DashboardView extends JFrame implements ActionListener  {
         }
 		}
 		}
-	}
-	/*
-	public void setContainerState(String msg){
-		SwingUtilities.invokeLater(() -> {
-			containerState.setText(msg); 
-		});
-	}
 
-	public void setWasteLevel(int perc){
-		SwingUtilities.invokeLater(() -> {
-			wasteLevelPercentage.setText("" + perc);
-		});
-	}
-
-	public void setCurrentTemperature(double temp){
-		SwingUtilities.invokeLater(() -> {
-			currentTemperature.setText("" + temp);
-		});
-	}
-
-	public void enableAvailable() {
-		SwingUtilities.invokeLater(() -> {
-			maintenanceDone.setEnabled(false);
-			dischargeContainer.setEnabled(false);
-		});
-	}
-	
-	public void enableMaintenance() {
-		SwingUtilities.invokeLater(() -> {
-			maintenanceDone.setEnabled(true);
-			dischargeContainer.setEnabled(false);
-		});
-	}
-
-	public void enableDischarge() {
-		SwingUtilities.invokeLater(() -> {
-			maintenanceDone.setEnabled(false);
-			dischargeContainer.setEnabled(true);
-		});
-	}
-	*/
-	
 	
