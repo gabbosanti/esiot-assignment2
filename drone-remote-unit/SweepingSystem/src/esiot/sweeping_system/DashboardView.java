@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -16,55 +17,50 @@ import javax.swing.*;
 
 class DashboardView extends JFrame implements ActionListener  {
 
-	private JButton start;
-	private JButton stop;
-	
-	private JTextField sweepingCount;
+	private JButton btnTakeOff;
+	private JButton btnLanding;
+	private JLabel lblDroneState;
+	private JLabel lblHangarState;
+	private JLabel lblDistance;
 	
 	private DashboardController controller;	
 	
 	public DashboardView(){
-		super(".:: Sweeping System ::.");
-		setSize(600,150);
-		this.setResizable(false);
+		super("Drone Remote Unit (DRU)");
+		setSize(400,300);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-		mainPanel.add(Box.createRigidArea(new Dimension(0,20)));
 		
-		JPanel infoLine = new JPanel();
-		infoLine.setLayout(new BoxLayout(infoLine, BoxLayout.LINE_AXIS));
-		sweepingCount = new JTextField("--");
-		sweepingCount.setEditable(false);
-		sweepingCount.setPreferredSize(new Dimension(200,15));
-		infoLine.add(new JLabel("Sweeping count:"));
-		infoLine.add(sweepingCount);
+		//Monitor Panel
+		JPanel monitorPanel = new JPanel(new GridLayout(3,2 ));
+		monitorPanel.setBorder(BorderFactory.createTitledBorder("Status Monitor"));
 		
-		mainPanel.add(infoLine);
-		mainPanel.add(Box.createRigidArea(new Dimension(0,20)));
-		mainPanel.setPreferredSize(new Dimension(200,20));
+		lblDroneState = new JLabel("IDLE");
+		lblHangarState = new JLabel("NORMAL");
+		lblDistance= new JLabel("---");
 
-		JPanel buttonPanel = new JPanel();
-		start = new JButton("Start");
-		start.setEnabled(false);
-		start.addActionListener(this);
-		stop = new JButton("Stop");
-		stop.setEnabled(false);
-		stop.addActionListener(this);
-		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));	    
-		buttonPanel.add(stop);
-		buttonPanel.add(start);
+		monitorPanel.add(new JLabel("Drone State:"));
+		monitorPanel.add(lblDroneState);
+		monitorPanel.add(new JLabel("Hangar State:"));
+		monitorPanel.add(lblHangarState);
+		monitorPanel.add(new JLabel("Distance:"));
+
+		//command Panel
+		JPanel controlPanel = new JPanel();
+		btnTakeOff = new JButton("Take-off");
+		btnLanding = new JButton("Landing");
+
+		btnTakeOff.addActionListener(this);
+		btnLanding.addActionListener(this);
+		controlPanel.add(btnTakeOff);
+		controlPanel.add(btnLanding);
+
+		mainPanel.add(monitorPanel);
+		mainPanel.add(controlPanel);
+		this.getContentPane().add(mainPanel);
 		
-		mainPanel.add(buttonPanel);
-		mainPanel.add(Box.createRigidArea(new Dimension(0,20)));
-		setContentPane(mainPanel);	
-		
-		addWindowListener(new WindowAdapter(){
-			public void windowClosing(WindowEvent ev){
-				System.exit(-1);
-			}
-		});
-	}
 	
 	public void display() {
 		SwingUtilities.invokeLater(() -> {
@@ -76,6 +72,30 @@ class DashboardView extends JFrame implements ActionListener  {
 		this.controller = contr;
 	}
 
+	public void setDroneState( String state){
+		SwingUtilities.invokeLater(() -> lblDroneState.setText(state));
+	}
+
+	public void setHangarState(String state, Color color){
+		SwingUtilities.invokeLater(() -> {
+			lblHangarState.setText(state);
+			lblHangarState.setForeground(color);
+		});
+	}
+
+	public void setDistance(String distance){
+		SwingUtilities.invokeLater(() -> lblDistance.setText(distance + " m"));
+
+		@Override
+		public void actionPerformed(ActionEvent ev){
+			if (ev.getSource() == btnTakeOff) {
+            controller.notifyTakeOff();
+        } else if (ev.getSource() == btnLanding) {
+            controller.notifyLanding();
+        }
+		}
+		}
+	}
 	/*
 	public void setContainerState(String msg){
 		SwingUtilities.invokeLater(() -> {
@@ -117,20 +137,4 @@ class DashboardView extends JFrame implements ActionListener  {
 	}
 	*/
 	
-	public void actionPerformed(ActionEvent ev){
-		  try {
-			  /*
-			  if (ev.getSource() == maintenanceDone){
-				  controller.notifyMaintenanceDone();
-				  maintenanceDone.setEnabled(false);
-			  } else if (ev.getSource() == dischargeContainer){
-				  controller.notifyDischarge();
-				  dischargeContainer.setEnabled(false);
-			  }
-			  */ 
-		  } catch (Exception ex){
-			  ex.printStackTrace();
-
-		  }
-	}
-}
+	
