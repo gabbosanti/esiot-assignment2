@@ -268,8 +268,9 @@ unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia)
 unsigned int ControlHangarTask::checkDist(unsigned int id, float soglia, char op)
 {
 
-    unsigned d = pSonar->getDistance();
-    Logger.log("DISTANZA : " + String(pSonar->getDistance()));
+    float d = pSonar->getDistance();
+
+    Logger.log("DISTANZA : " + String(d));
 
     bool &flag = (id == ID_DIST1) ? d1Cond : d2Cond;
     auto &start = (id == ID_DIST1) ? d1Start : d2Start;

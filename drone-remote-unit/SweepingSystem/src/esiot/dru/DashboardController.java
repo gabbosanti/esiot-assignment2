@@ -1,10 +1,13 @@
-package esiot.sweeping_system;
+package esiot.dru;
 
 public class DashboardController  {
 
 	// static final String MSG_MAINTENANCE_DONE 	= "ok";
 	// static final String MSG_DISCHARGE 			= "di";
 	
+	static final String DRU_ACTIVATE = "ACTIVATE";
+	static final String DRU_OPEN = "OPEN";
+
 	SerialCommChannel channel;
 	DashboardView view;
 	LogView logger;
@@ -20,6 +23,13 @@ public class DashboardController  {
 		Thread.sleep(4000);
 		System.out.println("Ready.");		
 	
+	}
+	
+	public void notifyTakeOff(){
+		channel.sendMsg(DRU_ACTIVATE);
+	}
+	public void notifyLanding(){
+		channel.sendMsg(DRU_OPEN);
 	}
 	
 	/*

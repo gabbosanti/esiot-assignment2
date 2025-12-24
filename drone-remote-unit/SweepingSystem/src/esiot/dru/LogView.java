@@ -1,8 +1,10 @@
-package esiot.sweeping_system;
+package esiot.dru;
 
 import java.util.Date;
 
 import javax.swing.*;
+
+//This class contains all the LOG from the serial line
 
 class LogView extends JFrame  {
 

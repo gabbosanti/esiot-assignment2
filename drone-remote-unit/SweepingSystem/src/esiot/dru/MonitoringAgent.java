@@ -1,4 +1,5 @@
-package esiot.sweeping_system;
+package esiot.dru;
+import java.awt.Color;
 
 public class MonitoringAgent extends Thread {
 
@@ -6,8 +7,8 @@ public class MonitoringAgent extends Thread {
 	DashboardView view;
 	LogView logger;
 	
-	static final String APP_PREFIX 	=  "sw:";
-	static final String LOG_PREFIX 	=  "lo:";
+	//static final String APP_PREFIX 	=  "sw:";
+	//static final String LOG_PREFIX 	=  "lo:";
 	
 	// static final String MSG_STATE 		= "st:";
 	// static final String[] stateNames = {"Available", "Full", "Maintenance"}; 
@@ -29,52 +30,28 @@ public class MonitoringAgent extends Thread {
 			try {
 				String msg = channel.receiveMsg();
 				// logger.log("new msg: "+msg);				
-				if (msg.startsWith(APP_PREFIX)){
-					String cmd = msg.substring(APP_PREFIX.length()); 
-					logger.log("new command: "+cmd);				
-					/*
-					if (cmd.startsWith(MSG_STATE)){
-						try {
-							String args = cmd.substring(MSG_STATE.length()); 
-							
-							String[] elems = args.split(":");
-							if (elems.length >= 3) {
-								int stateCode = Integer.parseInt(elems[0]);
-								int wasteLevel = Integer.parseInt(elems[1]);
-								double temp = Double.parseDouble(elems[2]);
-		
-								view.setWasteLevel(wasteLevel);
-								view.setCurrentTemperature(temp);
-								view.setContainerState(stateNames[stateCode]);
-								
-								if (stateCode == IN_MAINTENANCE && !inMaintenance) { // maintenance
-									inMaintenance = true;
-									view.enableMaintenance();
-								} else if (stateCode == FULL && !isFull) { // maintenance
-									isFull = true;
-									view.enableDischarge();
-								} else if (stateCode == AVAILABLE && inMaintenance) {
-									inMaintenance = false;
-									view.enableAvailable();
-								} else if (stateCode == AVAILABLE && isFull) {
-									isFull = false;
-									view.enableAvailable();
-								}
-								
-							}
-						} catch (Exception ex) {
-							ex.printStackTrace();
-							System.err.println("Error in msg: " + cmd);
-						}
+				if (logger != null) logger.log("Receiving: " + msg);
+				
+				if (msg.contains("[CHT] IDLE")){
+					view.setDroneState("RESTING (INSIDE)");
+					view.setHangarState("NORMAL", Color.BLACK);
+				} else if (msg.contains("[CHT] TAKEOFF")){
+					view.setDroneState("TAKING OFF...");
+				} else if (msg.contains("[CHT] DRONE_OUT")){
+					view.setDroneState("OPERATING (OUTSIDE)");
+				}else if (msg.contains("[CHT] LANDING")){
+					view.setDroneState("LANDING...");
+				}else if ( msg.contains("[CHT] ALARM")){
+					view.setHangarState("ALARM!!", Color.RED);
+				}else if (msg.contains("DISTANZA: ")){
+					String[] parts = msg.split(":");
+					if (parts.length > 1){
+						view.setDistance(parts[1].trim());
 					}
-					*/
-				} else if (msg.startsWith(LOG_PREFIX)){
-					this.logger.log(msg.substring(LOG_PREFIX.length()));
 				}
 			} catch (Exception ex){
 				ex.printStackTrace();
 			}
 		}
 	}
-
 }

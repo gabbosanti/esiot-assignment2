@@ -1,4 +1,4 @@
-package esiot.sweeping_system;
+package esiot.dru;
 
 /**
  * Simple interface for an async msg communication channel

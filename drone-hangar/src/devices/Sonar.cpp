@@ -23,7 +23,6 @@ float Sonar::getDistance()
   // Assicurati che il trigger sia LOW
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
-
   // Invia pulse di 10us
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);

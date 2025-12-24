@@ -1,16 +1,17 @@
-package esiot.sweeping_system;
+package esiot.dru;
 
 /**
  * 
- * An example of Dashboard for the Sweeping Case Study
+ * An example of Dashboard for the DRU subsystem
  * 
- * Partially implemented.
+ *  Entry point --> Runs the application
  * 
  */
 class DashboardLauncher   {
 
 	static DashboardView view = null;
 	static LogView log = null;
+    static String portName = "COM3";
 
 	public static void main(String[] args) throws Exception {	
 		/*
@@ -22,7 +23,6 @@ class DashboardLauncher   {
 		view = new DashboardView();
 		log = new LogView();
 		
-		String portName = "/dev/cu.usbmodem12101";
 		DashboardController contr = new DashboardController(portName,view,log);
 		view.registerController(contr);
 		
