@@ -19,7 +19,7 @@ HWPlatform::HWPlatform()
   pMotor = new ServoMotorImpl(HD_SERVO_PIN);
   pPirSensor = new Pir(DPD_PIR_PIN);
   pSonar = new Sonar(DDD_ECHO_PIN, DDD_TRIG_PIN, 30000);
-  pTempSensor = new TempSensorMock();
+  pTempSensor = new DHT11Sensor(TEMP_SENSOR_PIN);
   pLcd = new Lcd(0x27, 16, 2);
 }
 
@@ -69,7 +69,7 @@ Lcd *HWPlatform::getLcd()
   return this->pLcd;
 }
 
-TempSensorMock *HWPlatform::getTempSensor()
+DHT11Sensor *HWPlatform::getTempSensor()
 {
   return this->pTempSensor;
 }

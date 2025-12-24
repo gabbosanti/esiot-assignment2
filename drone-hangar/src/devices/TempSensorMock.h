@@ -3,11 +3,13 @@
 
 #include "TempSensor.h"
 
-class TempSensorMock : public TempSensor {
+class DHT11Sensor. : public TempSensor
+{
 public:
-    TempSensorMock() : value(25.0f) {}
+    DHT11Sensor.() : value(25.0f) {}
     void setTemperature(float v) { value = v; }
     float getTemperature() override { return value; }
+
 private:
     float value;
 };

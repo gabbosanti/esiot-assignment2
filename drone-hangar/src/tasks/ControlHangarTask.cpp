@@ -10,7 +10,7 @@
 #define ID_DIST1 1
 #define ID_DIST2 2
 
-ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar *pSonar, Pir *pPir, TempSensorMock *pTempSensor, Lcd *pLcd, Context *pContext) : pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext)
+ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar *pSonar, Pir *pPir, DHT11Sensor *pTempSensor, Lcd *pLcd, Context *pContext) : pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext)
 {
     setState(IDLE);
     pLcd->init();
@@ -30,9 +30,11 @@ void ControlHangarTask::tick()
             pLcd->print("DRONE INSIDE");
             pMotor->setPosition(HD_CLOSE);
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
+            resetConditions();
         }
 
         unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); // Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+        Logger.log("Temperatura superiore a " + String(TEMP1) + " per " + String(elapsedT1) + " ms");
         if ((elapsedT1 > T3) || pContext->isPendingPreAlarm())
         {
             setState(PRE_ALARM);
@@ -64,9 +66,12 @@ void ControlHangarTask::tick()
         if (this->checkAndSetJustEntered())
         {
             Logger.log(F("[CHT] TAKEOFF"));
+            resetConditions();
         }
 
-        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1);    // Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); // Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+        Logger.log("Temperatura superiore a " + String(elapsedT1) + " per " + elapsedT1 + " ms");
+
         unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); // Controlla se la distanza ha superato D1 e ne ritorna il tempo
         Logger.log("Distanza superiore a " + String(D1) + " per " + distanceD1 + " ms");
 
@@ -133,10 +138,12 @@ void ControlHangarTask::tick()
         if (this->checkAndSetJustEntered())
         {
             Logger.log(F("[CHT] LANDING"));
+            resetConditions();
         }
 
-        int DDD = pSonar->getDistance();                        // distanza rilevata dal sonar
-        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1);    // Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); // Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
+        Logger.log("Temperatura superiore a " + String(elapsedT1) + " per " + elapsedT1 + " ms");
+
         unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); // Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
         Logger.log("Distanza inferiore a " + String(D2) + " per " + distanceD2 + " ms");
 
@@ -145,11 +152,11 @@ void ControlHangarTask::tick()
             pContext->setPendingPreAlarm(true);
             Logger.log(F("[CHT] PENDING PRE-ALARM SET")); // Utilizzare per debug
         }
-        else if (DDD < D2 && distanceD2 > T2)
+        else if (distanceD2 > T2)
         {
             pMotor->setPosition(HD_CLOSE); // Chiude hangar
+            droneOutside = false;
             pLcd->clear();
-            pLcd->print("DRONE INSIDE");
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
             setState(IDLE);
         }
@@ -180,7 +187,7 @@ void ControlHangarTask::tick()
                 pLcd->clear();
                 pLcd->print("DRONE_OUT");
                 pContext->setDisplayState(DisplayState::DRONE_OUT);
-                setState(IDLE);
+                setState(DRONE_OUT);
             }
             else
             {
@@ -245,6 +252,15 @@ unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia)
 
     float temp = pTempSensor->getTemperature(); // temperatura rilevata dal sensore
 
+    // Verifica che la lettura sia valida
+    if (!pTempSensor->isValid())
+    {
+        Logger.log("TEMPERATURA : Lettura non valida!");
+        return 0; // Non aggiornare i timer se la lettura non è valida
+    }
+
+    Logger.log("TEMPERATURA : " + String(temp));
+
     bool &flag = (id == ID_TEMP1) ? temp1Cond : temp2Cond;            // Seleziona il flag corretto in base all'id
     unsigned int &start = (id == ID_TEMP1) ? temp1Start : temp2Start; // Seleziona il tempo di inizio corretto in base all'id
 
@@ -293,4 +309,16 @@ unsigned int ControlHangarTask::checkDist(unsigned int id, float soglia, char op
         flag = false;
         return 0;
     }
+}
+
+void ControlHangarTask::resetConditions()
+{
+    temp1Cond = false;
+    temp2Cond = false;
+    d1Cond = false;
+    d2Cond = false;
+    temp1Start = 0;
+    temp2Start = 0;
+    d1Start = 0;
+    d2Start = 0;
 }
