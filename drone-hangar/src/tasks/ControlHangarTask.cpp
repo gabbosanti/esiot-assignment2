@@ -10,7 +10,7 @@
 #define ID_DIST1 1
 #define ID_DIST2 2
 
-ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar *pSonar, Pir *pPir, DHT11Sensor *pTempSensor, Lcd *pLcd, Context *pContext) : pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext)
+ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar *pSonar, Pir *pPir, TempSensorTMP36 *pTempSensor, Lcd *pLcd, Context *pContext) : pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext)
 {
     setState(IDLE);
     pLcd->init();
@@ -251,13 +251,6 @@ unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia)
 {
 
     float temp = pTempSensor->getTemperature(); // temperatura rilevata dal sensore
-
-    // Verifica che la lettura sia valida
-    if (!pTempSensor->isValid())
-    {
-        Logger.log("TEMPERATURA : Lettura non valida!");
-        return 0; // Non aggiornare i timer se la lettura non è valida
-    }
 
     Logger.log("TEMPERATURA : " + String(temp));
 

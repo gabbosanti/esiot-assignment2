@@ -27,9 +27,6 @@
 #define LCD_COL 2
 #define LCD_I2C_ADDR 0x27
 
-// TEMPERATURE SENSOR
-#define TEMP_SENSOR_PIN 7
-
 // CONFIG PARAMETERS
 #define L2_BLINK 500
 
@@ -41,8 +38,8 @@
 #define T3 3000
 #define T4 5000
 
-#define TEMP1 40 // pre-alarm
-#define TEMP2 50 // alarm
+#define TEMP1 25 // pre-alarm
+#define TEMP2 30 // alarm
 
 // Hangar Door movement:
 
