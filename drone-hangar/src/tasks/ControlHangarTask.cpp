@@ -24,6 +24,8 @@ void ControlHangarTask::tick()
 
     case IDLE:
     {
+        readSerial(true);
+
         if (this->checkAndSetJustEntered())
         {
             Logger.log(F("[CHT] IDLE"));
@@ -40,22 +42,17 @@ void ControlHangarTask::tick()
             setState(PRE_ALARM);
         }
 
-        else if (Serial.available() > 0)
+        if (pendingCmd == DRU_ACTIVATE)
         {
-            String cmd = Serial.readStringUntil('\n'); // legge una riga
-            cmd.trim();                                // toglie spazi/\r
+            pendingCmd = "";
 
-            Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
-            if (cmd == DRU_ACTIVATE)
-            {
-                Logger.log("Messaggio corretto");
-                pMotor->on();
-                pMotor->setPosition(HD_OPEN);
-                pLcd->clear();
-                pLcd->print("TAKEOFF");
-                pContext->setDisplayState(DisplayState::TAKEOFF);
-                setState(TAKEOFF);
-            }
+            Logger.log("ACTIVATE command received");
+            pMotor->on();
+            pMotor->setPosition(HD_OPEN);
+            pLcd->clear();
+            pLcd->print("TAKEOFF");
+            pContext->setDisplayState(DisplayState::TAKEOFF);
+            setState(TAKEOFF);
         }
 
         break;
@@ -95,6 +92,8 @@ void ControlHangarTask::tick()
 
     case DRONE_OUT:
     {
+        readSerial(true);
+
         if (this->checkAndSetJustEntered())
         {
             Logger.log(F("[CHT] DRONE_OUT"));
@@ -108,26 +107,16 @@ void ControlHangarTask::tick()
         }
 
         // Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
-        else if (pPir->isDetected())
+        if (pendingCmd == DRU_OPENING && pPir->isDetected())
         {
-            Logger.log("PIR ha rilevato un movimento");
-            if (Serial.available() > 0)
-            {
-                String cmd = Serial.readStringUntil('\n');
-                cmd.trim();
+            pendingCmd = "";
 
-                Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
-
-                if (cmd == DRU_OPENING)
-                {
-                    Logger.log("Messaggio corretto");
-                    pMotor->setPosition(HD_OPEN); // Apre hangar
-                    pLcd->clear();
-                    pLcd->print("LANDING");
-                    pContext->setDisplayState(DisplayState::LANDING);
-                    setState(LANDING);
-                }
-            }
+            Logger.log("LANDING command accepted");
+            pMotor->setPosition(HD_OPEN);
+            pLcd->clear();
+            pLcd->print("LANDING");
+            pContext->setDisplayState(DisplayState::LANDING);
+            setState(LANDING);
         }
 
         break;
@@ -314,4 +303,22 @@ void ControlHangarTask::resetConditions()
     temp2Start = 0;
     d1Start = 0;
     d2Start = 0;
+}
+
+void ControlHangarTask::readSerial(bool allowed)
+{
+    if (!allowed)
+        return;
+
+    if (Serial.available() > 0)
+    {
+        String cmd = Serial.readStringUntil('\n');
+        cmd.trim();
+
+        if (cmd.length() > 0)
+        {
+            pendingCmd = cmd;
+            Logger.log("Serial CMD buffered: " + cmd);
+        }
+    }
 }

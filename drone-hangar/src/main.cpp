@@ -51,8 +51,7 @@ void loop()
   sched.schedule();
 }
 
-
-//Test tmp36
+// Test tmp36
 /*
 void setup()
 {

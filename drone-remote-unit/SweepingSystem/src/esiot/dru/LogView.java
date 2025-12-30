@@ -1,7 +1,5 @@
 package esiot.dru;
 
-import java.util.Date;
-
 import javax.swing.*;
 
 //This class contains all the LOG from the serial line
@@ -12,7 +10,7 @@ class LogView extends JFrame  {
 
 	public LogView(){
 		super("Log ");
-		setSize(800,800);
+		setSize(600,600);
 		this.setResizable(false);
 		JPanel mainPanel = new JPanel();
 		log = new JTextArea(30,40);
@@ -24,8 +22,7 @@ class LogView extends JFrame  {
 	
 	public void log(String msg){
 		SwingUtilities.invokeLater(() -> {
-			String date = new Date().toString();
-			log.append("["+date+"] "+ msg +"\n");
+			log.append( msg +"\n");
 		});
 	}
 	
