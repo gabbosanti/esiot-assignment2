@@ -93,6 +93,7 @@ void ControlHangarTask::tick()
     case DRONE_OUT:
     {
         readSerial(true);
+        pPir->sync();
 
         if (this->checkAndSetJustEntered())
         {
@@ -107,11 +108,18 @@ void ControlHangarTask::tick()
         }
 
         // Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
-        if (pendingCmd == DRU_OPENING && pPir->isDetected())
+        if (pendingCmd == DRU_OPENING)
         {
             pendingCmd = "";
+            Logger.log("LANDING command received");
+            landingRequest = true;
+        }
 
-            Logger.log("LANDING command accepted");
+        // Se è stato richiesto l'atterraggio e il drone è stato rilevato dal PIR
+        if (landingRequest && pPir->isDetected())
+        {
+            Logger.log("PIR detected + landing requested");
+            landingRequest = false;
             pMotor->setPosition(HD_OPEN);
             pLcd->clear();
             pLcd->print("LANDING");

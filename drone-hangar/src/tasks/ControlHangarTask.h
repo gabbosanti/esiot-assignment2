@@ -42,6 +42,7 @@ private:
   long stateTimestamp;
   bool justEntered;
   String pendingCmd = "";
+  bool landingRequest = false;
   bool droneOutside = false;
 
   // TEMPERATURE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
