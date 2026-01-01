@@ -1,6 +1,6 @@
 #include "HWPlatform.h"
 #include "Arduino.h"
-#include "devices/ButtonImpl.h"
+#include "devices/Button.h"
 #include "kernel/MsgService.h"
 #include "config.h"
 #include "devices/Led.h"
@@ -12,7 +12,7 @@ void wakeUp() {}
 
 HWPlatform::HWPlatform()
 {
-  pButton = new ButtonImpl(RESET_BUTTON_PIN);
+  pButton = new Button(RESET_BUTTON_PIN);
   pLed1 = new Led(L1_PIN);
   pLed2 = new Led(L2_PIN);
   pLed3 = new Led(L3_PIN);
@@ -78,7 +78,7 @@ TempSensorTMP36 *HWPlatform::getTempSensor()
 void HWPlatform::testButton()
 {
   static bool last = false;
-  bool now = pButton->isPressed();
+  bool now = pButton->isPressedEdge();
   if (now != last)
   {
     Logger.log(String("Button: ") + (now ? "pressed" : "released"));

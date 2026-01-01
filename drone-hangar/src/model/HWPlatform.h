@@ -9,7 +9,6 @@
 #include "devices/Sonar.h"
 #include "devices/TempSensorTMP36.h"
 #include "devices/Lcd.h"
-#include "devices/DHT11Sensor.h"
 
 class HWPlatform
 {

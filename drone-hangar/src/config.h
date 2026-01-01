@@ -36,10 +36,10 @@
 #define T1 2000
 #define T2 3000
 #define T3 3000
-#define T4 5000
+#define T4 4000
 
-#define TEMP1 25 // pre-alarm
-#define TEMP2 30 // alarm
+#define TEMP1 22 // pre-alarm
+#define TEMP2 25 // alarm
 
 // Hangar Door movement:
 

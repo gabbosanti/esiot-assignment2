@@ -18,7 +18,7 @@ void setup()
 {
 
   MsgService.init();
-  sched.init(100);
+  sched.init(50);
 
   Logger.log(":::::: Smart Drone Hangar ::::");
 
@@ -29,7 +29,7 @@ void setup()
   pContext = new Context();
 
   Task *pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getSonar(), pHWPlatform->getPirSensor(), pHWPlatform->getTempSensor(), pHWPlatform->getLcd(), pContext);
-  pControlHangarTask->init(100);
+  pControlHangarTask->init(150);
 
   Task *pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
   pBlinkingTask->init(100);

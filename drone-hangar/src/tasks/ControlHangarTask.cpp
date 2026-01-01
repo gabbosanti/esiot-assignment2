@@ -29,6 +29,7 @@ void ControlHangarTask::tick()
         if (this->checkAndSetJustEntered())
         {
             Logger.log(F("[CHT] IDLE"));
+            pLcd->clear();
             pLcd->print("DRONE INSIDE");
             pMotor->setPosition(HD_CLOSE);
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
@@ -39,6 +40,7 @@ void ControlHangarTask::tick()
         Logger.log("Temperatura superiore a " + String(TEMP1) + " per " + String(elapsedT1) + " ms");
         if ((elapsedT1 > T3) || pContext->isPendingPreAlarm())
         {
+            Logger.log(F("[CHT] MOVING TO PRE-ALARM"));
             setState(PRE_ALARM);
         }
 
@@ -170,8 +172,9 @@ void ControlHangarTask::tick()
 
         float temp = pTempSensor->getTemperature();          // temperatura rilevata dal sensore
         unsigned int elapsedT4 = checkTemp(ID_TEMP2, TEMP2); // Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
+        Logger.log("Temperatura superiore a " + String(TEMP2) + " per " + String(elapsedT4) + " ms");
 
-        if (temp >= TEMP2 && elapsedT4 > T4)
+        if (elapsedT4 > T4)
         {
             pMotor->setPosition(HD_CLOSE); // Chiude hangar
             pContext->setDisplayState(DisplayState::ALARM);
@@ -181,18 +184,15 @@ void ControlHangarTask::tick()
         {
             if (droneOutside)
             {
-                pLcd->clear();
-                pLcd->print("DRONE_OUT");
                 pContext->setDisplayState(DisplayState::DRONE_OUT);
                 setState(DRONE_OUT);
             }
             else
             {
-                pLcd->clear();
-                pLcd->print("DRONE INSIDE");
                 pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                 setState(IDLE);
             }
+
             pContext->setPendingPreAlarm(false);
         }
 
@@ -206,12 +206,14 @@ void ControlHangarTask::tick()
             Logger.log(F("[CHT] ALARM"));
             pLcd->clear();
             pLcd->print("ALARM");
-            pContext->setDisplayState(DisplayState::ALARM);
+            pMotor->setPosition(HD_CLOSE);
         }
 
-        if (pButton->isPressed())
+        if (pButton->isPressedEdge())
         {
+            Logger.log("RESET premuto");
             pContext->setPendingPreAlarm(false);
+            resetConditions();
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
             setState(IDLE);
         }
