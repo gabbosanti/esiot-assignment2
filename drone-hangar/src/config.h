@@ -39,7 +39,7 @@
 #define T4 4000
 
 #define TEMP1 22 // pre-alarm
-#define TEMP2 25 // alarm
+#define TEMP2 24 // alarm
 
 // Hangar Door movement:
 

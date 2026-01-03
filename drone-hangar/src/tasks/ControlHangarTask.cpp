@@ -31,7 +31,7 @@ void ControlHangarTask::tick()
             Logger.log(F("[CHT] IDLE"));
             pLcd->clear();
             pLcd->print("DRONE INSIDE");
-            pMotor->setPosition(HD_CLOSE);
+            pMotor->setPosition(HD_CLOSE); // Chiudo l'hangar, se è aperto
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
             resetConditions();
         }
@@ -41,6 +41,7 @@ void ControlHangarTask::tick()
         if ((elapsedT1 > T3) || pContext->isPendingPreAlarm())
         {
             Logger.log(F("[CHT] MOVING TO PRE-ALARM"));
+            pContext->setDisplayState(DisplayState::PREALARM); // Non appare su LCD, mi serve per aggiornare il contesto condiviso con la BlinkingTask
             setState(PRE_ALARM);
         }
 
@@ -75,10 +76,11 @@ void ControlHangarTask::tick()
         Logger.log("Distanza superiore a " + String(D1) + " per " + distanceD1 + " ms");
 
         if (elapsedT1 > T3 && !pContext->isPendingPreAlarm())
-        { // Altrimenti entra sempre qui (ciclo infinito)
+        {
             pContext->setPendingPreAlarm(true);
-            Logger.log(F("[CHT] PENDING PRE-ALARM SET")); // Utilizzare per debug
+            Logger.log(F("[CHT] PENDING PRE-ALARM SET"));
         }
+
         else if (distanceD1 > T1)
         {
             pMotor->setPosition(HD_CLOSE); // Apre hangar
@@ -209,7 +211,21 @@ void ControlHangarTask::tick()
             pMotor->setPosition(HD_CLOSE);
         }
 
-        if (pButton->isPressedEdge())
+        // DEBUG: aggiungi questo per verificare che il codice venga eseguito
+        static unsigned long lastDebugPrint = 0;
+        if (millis() - lastDebugPrint > 1000)
+        {
+            Logger.log("In stato ALARM - controllo pulsante...");
+            lastDebugPrint = millis();
+        }
+
+        // DEBUG completo
+        bool pressed = pButton->isPressed();
+        bool edge = pButton->isPressedEdge();
+
+        Logger.log("Stato pulsante - isPressed: " + String(pressed) + ", edge: " + String(edge));
+
+        if (pressed)
         {
             Logger.log("RESET premuto");
             pContext->setPendingPreAlarm(false);

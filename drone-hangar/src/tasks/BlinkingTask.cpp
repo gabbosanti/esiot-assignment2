@@ -31,6 +31,11 @@ void BlinkingTask::tick()
             setState(L2_ON);
         }
 
+        if (display == DisplayState::PREALARM)
+        {
+            setState(PRE_ALARM);
+        }
+
         break;
     }
     case L2_ON:
@@ -91,7 +96,7 @@ void BlinkingTask::tick()
         {
             Logger.log(F("[BT] PRE_ALARM"));
         }
-        if (pContext->getDisplayState() == DisplayState::ALARM)
+        if (display == DisplayState::ALARM)
         {
             setState(LED_ALARM);
         }
@@ -105,7 +110,8 @@ void BlinkingTask::tick()
             pLed3->switchOn();
             Logger.log(F("[BT] LED_ALARM"));
         }
-        if (pContext->getDisplayState() == DisplayState::DRONE_INSIDE)
+
+        if (display == DisplayState::DRONE_INSIDE)
         {
             pLed3->switchOff();
             setState(IDLE);

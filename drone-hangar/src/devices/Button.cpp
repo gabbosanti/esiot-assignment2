@@ -1,31 +1,39 @@
 #include "Button.h"
 #include "Arduino.h"
 
-Button::Button(int pin) : pin(pin), lastState(true), lastDebounceTime(0)
+Button::Button(int pin) : pin(pin), lastState(false), lastDebounceTime(0)
 {
-    pinMode(pin, INPUT_PULLUP); // Pull-up interno (pin HIGH quando non premuto)
+    pinMode(pin, INPUT_PULLUP);
 }
 
 bool Button::isPressed()
 {
-    return digitalRead(pin) == LOW; // Invertito: LOW = premuto
+    return digitalRead(pin) == LOW;
 }
 
 bool Button::isPressedEdge()
 {
-    bool current = (digitalRead(pin) == LOW); // Invertito
-
-    if (current != lastState)
+    bool currentReading = (digitalRead(pin) == LOW);
+    bool pressed = false;
+    
+    // Se la lettura è diversa dall'ultimo stato stabile
+    if (currentReading != lastState)
     {
         lastDebounceTime = millis();
     }
-
-    bool pressed = false;
+    
+    // Se è passato abbastanza tempo (stato stabile)
     if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY)
     {
-        pressed = current && !lastState;
+        // Rileva il fronte: ora premuto, prima non premuto
+        if (currentReading && !lastState)
+        {
+            pressed = true;
+        }
+        
+        // Aggiorna lo stato solo dopo il debounce
+        lastState = currentReading;
     }
-
-    lastState = current;
+    
     return pressed;
 }
