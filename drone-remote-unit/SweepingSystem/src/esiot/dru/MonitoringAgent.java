@@ -41,13 +41,10 @@ public class MonitoringAgent extends Thread {
 					view.setDroneState("OPERATING (OUTSIDE)");
 				}else if (msg.contains("[CHT] LANDING")){
 					view.setDroneState("LANDING...");
+				}else if ( msg.contains("[CHT] PRE-ALARM")){
+					view.setHangarState("PRE_ALARM", Color.RED);
 				}else if ( msg.contains("[CHT] ALARM")){
 					view.setHangarState("ALARM!!", Color.RED);
-				}else if (msg.contains("DISTANZA: ")){
-					String[] parts = msg.split(":");
-					if (parts.length > 1){
-						view.setDistance(parts[1].trim());
-					}
 				}
 			} catch (Exception ex){
 				ex.printStackTrace();
