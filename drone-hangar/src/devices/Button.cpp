@@ -15,13 +15,13 @@ bool Button::isPressedEdge()
 {
     bool currentReading = (digitalRead(pin) == LOW);
     bool pressed = false;
-    
+
     // Se la lettura è diversa dall'ultimo stato stabile
     if (currentReading != lastState)
     {
         lastDebounceTime = millis();
     }
-    
+
     // Se è passato abbastanza tempo (stato stabile)
     if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY)
     {
@@ -30,10 +30,10 @@ bool Button::isPressedEdge()
         {
             pressed = true;
         }
-        
+
         // Aggiorna lo stato solo dopo il debounce
         lastState = currentReading;
     }
-    
+
     return pressed;
 }

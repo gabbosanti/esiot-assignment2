@@ -77,13 +77,8 @@ TempSensorTMP36 *HWPlatform::getTempSensor()
 // Funzioni di test per ogni componente :
 void HWPlatform::testButton()
 {
-  static bool last = false;
-  bool now = pButton->isPressedEdge();
-  if (now != last)
-  {
-    Logger.log(String("Button: ") + (now ? "pressed" : "released"));
-    last = now;
-  }
+  bool now = pButton->isPressed();
+  Logger.log(String("Button: ") + (now ? "pressed" : "released"));
 }
 
 void HWPlatform::testMotor()

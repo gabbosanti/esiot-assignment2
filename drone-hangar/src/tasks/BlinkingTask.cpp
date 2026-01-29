@@ -27,14 +27,10 @@ void BlinkingTask::tick()
         }
 
         if (display == DisplayState::TAKEOFF || display == DisplayState::LANDING)
-        {
             setState(L2_ON);
-        }
 
         if (display == DisplayState::PREALARM)
-        {
             setState(PRE_ALARM);
-        }
 
         break;
     }
@@ -47,7 +43,6 @@ void BlinkingTask::tick()
             Logger.log(F("[BT] L1 ON L2 ON L3 OFF"));
         }
 
-        // Se ho superato il periodo
         if (elapsedTimeInState() >= (L2_BLINK))
         {
             setState(L2_OFF);
@@ -58,7 +53,8 @@ void BlinkingTask::tick()
             pLed2->switchOff();
             setState(PRE_ALARM);
         }
-        else if (display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE)
+
+        if (display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE)
         {
             pLed2->switchOff();
             setState(IDLE);
@@ -74,7 +70,7 @@ void BlinkingTask::tick()
             Logger.log(F("[BT] L1 ON L2 OFF L3 OFF"));
         }
 
-        if (elapsedTimeInState() >= (L2_BLINK))
+        if (elapsedTimeInState() >= L2_BLINK)
         {
             setState(L2_ON);
         }
@@ -83,7 +79,8 @@ void BlinkingTask::tick()
         {
             setState(PRE_ALARM);
         }
-        else if (display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE)
+
+        if (display == DisplayState::DRONE_OUT || display == DisplayState::DRONE_INSIDE)
         {
             setState(IDLE);
         }
@@ -126,7 +123,7 @@ void BlinkingTask::tick()
 
 void BlinkingTask::setState(State s)
 {
-    state = s; // Perchè da errore ?
+    state = s;
     stateTimestamp = millis();
     justEntered = true;
 }

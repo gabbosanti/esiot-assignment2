@@ -28,7 +28,11 @@ void setup()
 #ifdef __TESTING_HW__
   pContext = new Context();
 
-  Task *pControlHangarTask = new ControlHangarTask(pHWPlatform->getButton(), pHWPlatform->getMotor(), pHWPlatform->getSonar(), pHWPlatform->getPirSensor(), pHWPlatform->getTempSensor(), pHWPlatform->getLcd(), pContext);
+  Task *pControlHangarTask = new ControlHangarTask(
+      pHWPlatform->getButton(), pHWPlatform->getMotor(),
+      pHWPlatform->getSonar(), pHWPlatform->getPirSensor(),
+      pHWPlatform->getTempSensor(), pHWPlatform->getLcd(),
+      pContext);
   pControlHangarTask->init(150);
 
   Task *pBlinkingTask = new BlinkingTask(pHWPlatform->getLed1(), pHWPlatform->getLed2(), pHWPlatform->getLed3(), pContext);
