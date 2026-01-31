@@ -44,6 +44,7 @@ private:
   String pendingCmd = "";
   bool landingRequest = false;
   bool droneOutside = false;
+  bool lastButtonState = false;
 
   // TEMPERATURE (bool : stato della condizione, unsigned int: timestamp in cui è stata soddisfatta la condizione)
   bool temp1Cond = false;
@@ -61,7 +62,6 @@ private:
   long elapsedTimeInState();
   void log(const String &msg);
   bool checkAndSetJustEntered();
-  void readSerial(bool allowed);
   void resetConditions();
 };
 

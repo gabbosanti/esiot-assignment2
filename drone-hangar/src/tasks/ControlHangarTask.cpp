@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "config.h"
 #include "kernel/Logger.h"
+#include "kernel/MsgService.h"
 
 #define DRU_ACTIVATE "ACTIVATE"
 #define DRU_OPENING "OPEN"
@@ -19,12 +20,18 @@ ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar 
 
 void ControlHangarTask::tick()
 {
+    if (MsgService.isMsgAvailable())
+    {
+        Msg *msg = MsgService.receiveMsg();
+        pendingCmd = msg->getContent();
+        delete msg;
+    }
+
     switch (state)
     {
 
     case IDLE:
     {
-        readSerial(true);
 
         if (this->checkAndSetJustEntered())
         {
@@ -96,7 +103,6 @@ void ControlHangarTask::tick()
 
     case DRONE_OUT:
     {
-        readSerial(true);
         pPir->sync();
 
         if (this->checkAndSetJustEntered())
@@ -209,22 +215,21 @@ void ControlHangarTask::tick()
             pLcd->clear();
             pLcd->print("ALARM");
             pMotor->setPosition(HD_CLOSE);
+            lastButtonState = false; // Reset quando entri
         }
 
-        bool pressed = pButton->isPressed();
-        bool edge = pButton->isPressedEdge();
+        bool currentPressed = pButton->isPressed();
 
-        Logger.log("Stato pulsante - isPressed: " + String(pressed) + ", edge: " + String(edge));
-
-        if (pressed)
+        if (currentPressed && !lastButtonState)
         {
-            Logger.log("RESET premuto");
+            Logger.log("RESET button pressed");
             pContext->setPendingPreAlarm(false);
             resetConditions();
             pContext->setDisplayState(DisplayState::DRONE_INSIDE);
             setState(IDLE);
         }
 
+        lastButtonState = currentPressed;
         break;
     }
     }
@@ -320,22 +325,4 @@ void ControlHangarTask::resetConditions()
     temp2Start = 0;
     d1Start = 0;
     d2Start = 0;
-}
-
-void ControlHangarTask::readSerial(bool allowed)
-{
-    if (!allowed)
-        return;
-
-    if (Serial.available() > 0)
-    {
-        String cmd = Serial.readStringUntil('\n');
-        cmd.trim();
-
-        if (cmd.length() > 0)
-        {
-            pendingCmd = cmd;
-            Logger.log("Serial CMD buffered: " + cmd);
-        }
-    }
 }
