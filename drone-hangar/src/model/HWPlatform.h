@@ -14,7 +14,7 @@ class HWPlatform
 {
 
 public:
-  HWPlatform(); // Constructor
+  HWPlatform();
   void init();
   void test();
 

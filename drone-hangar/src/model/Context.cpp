@@ -1,23 +1,27 @@
 #include "Context.h"
 
-Context::Context(){
-    // inizializza lo stato di visualizzazione predefinito
+Context::Context()
+{
     displayState = DisplayState::DRONE_INSIDE;
     pendingPreAlarm = false;
 }
 
-void Context::setDisplayState(DisplayState s){
+void Context::setDisplayState(DisplayState s)
+{
     displayState = s;
 }
 
-DisplayState Context::getDisplayState(){
+DisplayState Context::getDisplayState()
+{
     return displayState;
 }
 
-void Context::setPendingPreAlarm(bool flag_prealarm) {
+void Context::setPendingPreAlarm(bool flag_prealarm)
+{
     pendingPreAlarm = flag_prealarm;
 }
 
-bool Context::isPendingPreAlarm(){
+bool Context::isPendingPreAlarm()
+{
     return pendingPreAlarm;
 }

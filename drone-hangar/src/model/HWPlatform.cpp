@@ -103,7 +103,7 @@ void HWPlatform::testPir()
   pPirSensor->calibrate();
   Logger.log("Calibration ended");
   static bool last = false;
-  pPirSensor->sync(); // aggiorna stato interno
+  pPirSensor->sync();
   bool now = pPirSensor->isDetected();
   if (now != last)
   {
@@ -124,7 +124,6 @@ void HWPlatform::testLcd()
   pLcd->print("PROVA");
 }
 
-// Testing dei componenti : uso la serial line per scegliere quale componente testare
 void HWPlatform::test()
 {
 
