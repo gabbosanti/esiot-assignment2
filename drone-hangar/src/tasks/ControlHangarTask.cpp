@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "config.h"
 #include "kernel/Logger.h"
+#include "kernel/MsgService.h"
 
 #define DRU_ACTIVATE "ACTIVATE"
 #define DRU_OPENING "OPEN"
@@ -10,236 +11,318 @@
 #define ID_DIST1 1
 #define ID_DIST2 2
 
-ControlHangarTask::ControlHangarTask(Button* pButton, ServoMotor* pMotor, Sonar* pSonar, Pir * pPir, TempSensorTMP36* pTempSensor, Lcd* pLcd, Context* pContext): 
-   pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext){
+ControlHangarTask::ControlHangarTask(Button *pButton, ServoMotor *pMotor, Sonar *pSonar, Pir *pPir, TempSensorTMP36 *pTempSensor, Lcd *pLcd, Context *pContext) : pButton(pButton), pMotor(pMotor), pSonar(pSonar), pPir(pPir), pTempSensor(pTempSensor), pLcd(pLcd), pContext(pContext)
+{
     setState(IDLE);
     pLcd->init();
     pContext->setPendingPreAlarm(false);
 }
-  
-void ControlHangarTask::tick(){
-    switch (state){    
 
-        case IDLE: {
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] IDLE"));
-                pLcd->print("DRONE INSIDE");
-                pMotor->setPosition(HD_CLOSE);
-                pContext->setDisplayState(DisplayState::DRONE_INSIDE);
-            }
+void ControlHangarTask::tick()
+{
+    if (MsgService.isMsgAvailable())
+    {
+        Msg *msg = MsgService.receiveMsg();
+        pendingCmd = msg->getContent();
+        delete msg;
+    }
 
-            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            Logger.log("TEMPERATURE : " + String(pTempSensor->getTemperature()));
-            if((elapsedT1 > T3) || pContext->isPendingPreAlarm()){
-                setState(PRE_ALARM);
-            }
+    switch (state)
+    {
 
-            else if  (Serial.available() > 0) {
-                String cmd = Serial.readStringUntil('\n');  // legge una riga
-                cmd.trim();                                 // toglie spazi/\r
+    case IDLE:
+    {
 
-                Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
-                if (cmd == DRU_ACTIVATE) {
-                    Logger.log("Messaggio corretto");
-                    pMotor->on();
-                    pMotor->setPosition(HD_OPEN);
-                    pLcd->clear();
-                    pLcd->print("TAKEOFF");
-                    pContext->setDisplayState(DisplayState::TAKEOFF);
-                    setState(TAKEOFF);
-                }
-            }
-
-            break;
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] IDLE"));
+            pLcd->clear();
+            pLcd->print("DRONE INSIDE");
+            pMotor->setPosition(HD_CLOSE); // Closes hangar, if open
+            pContext->setDisplayState(DisplayState::DRONE_INSIDE);
+            resetConditions();
         }
 
-        case TAKEOFF: {        
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] TAKEOFF"));
-            }
-            
-            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            Logger.log("TEMPERATURA : " + String(pTempSensor->getTemperature()));
-            unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); //Controlla se la distanza ha superato D1 e ne ritorna il tempo
-            Logger.log("DISTANZA : " + String(pSonar->getDistance()));
-            
-            if (elapsedT1 > T3 && !pContext->isPendingPreAlarm()){ //Altrimenti entra sempre qui (ciclo infinito)
-                pContext->setPendingPreAlarm(true);
-                Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
-            } else if (distanceD1 > T1){ 
-                pMotor->setPosition(HD_CLOSE); //Apre hangar
-                droneOutside = true;
-                pLcd->clear();
-                pLcd->print("DRONE OUT");
+        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); // Check if temperature exceeded TEMP1 and for how long
+        Logger.log("Temperature higer than " + String(TEMP1) + " for " + String(elapsedT1) + " ms");
+        if ((elapsedT1 > T3) || pContext->isPendingPreAlarm())
+        {
+            Logger.log(F("[CHT] MOVING TO PRE-ALARM"));
+            pContext->setDisplayState(DisplayState::PREALARM);
+            setState(PRE_ALARM);
+        }
+
+        if (pendingCmd == DRU_ACTIVATE)
+        {
+            pendingCmd = "";
+
+            Logger.log("ACTIVATE command received");
+            pMotor->on();
+            pMotor->setPosition(HD_OPEN);
+            pLcd->clear();
+            pLcd->print("TAKEOFF");
+            pContext->setDisplayState(DisplayState::TAKEOFF);
+            setState(TAKEOFF);
+        }
+
+        break;
+    }
+
+    case TAKEOFF:
+    {
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] TAKEOFF"));
+            resetConditions();
+        }
+
+        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); // Check if temperature exceeded TEMP1 and for how long
+        Logger.log("Temperature higher than " + String(TEMP1) + " for " + String(elapsedT1) + " ms");
+
+        unsigned int distanceD1 = checkDist(ID_DIST1, D1, '>'); // Check if distance exceeded D1 and for how long
+        Logger.log("Distance higher than " + String(D1) + " for " + distanceD1 + " ms");
+
+        if (elapsedT1 > T3 && !pContext->isPendingPreAlarm()) // If pending pre-alarm is already set, do not execute again
+        {
+            pContext->setPendingPreAlarm(true);
+            Logger.log(F("[CHT] PENDING PRE-ALARM SET"));
+        }
+
+        else if (distanceD1 > T1)
+        {
+            pMotor->setPosition(HD_CLOSE); // opens hangar
+            droneOutside = true;
+            pLcd->clear();
+            pLcd->print("DRONE OUT");
+            pContext->setDisplayState(DisplayState::DRONE_OUT);
+            setState(DRONE_OUT);
+        }
+
+        break;
+    }
+
+    case DRONE_OUT:
+    {
+        pPir->sync();
+
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] DRONE_OUT"));
+        }
+
+        // If pre-alarm was pending, move to PRE-ALARM state
+        if (pContext->isPendingPreAlarm())
+        {
+            Logger.log(F("[CHT] MOVING TO PRE-ALARM"));
+            setState(PRE_ALARM);
+        }
+
+        // If LANDING command received via serial
+        if (pendingCmd == DRU_OPENING)
+        {
+            pendingCmd = "";
+            Logger.log("LANDING command received");
+            landingRequest = true;
+        }
+
+        if (landingRequest && pPir->isDetected())
+        {
+            Logger.log("PIR detected + landing requested");
+            landingRequest = false;
+            pMotor->setPosition(HD_OPEN);
+            pLcd->clear();
+            pLcd->print("LANDING");
+            pContext->setDisplayState(DisplayState::LANDING);
+            setState(LANDING);
+        }
+
+        break;
+    }
+
+    case LANDING:
+    {
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] LANDING"));
+            resetConditions();
+        }
+
+        unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1);
+        Logger.log("Temperature higher than " + String(TEMP1) + " for " + String(elapsedT1) + " ms");
+
+        unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); // Check if distance is lower than D2 and for how long
+        Logger.log("Distance lower than " + String(D2) + " for " + String(distanceD2) + " ms");
+
+        if (elapsedT1 > T3)
+        {
+            pContext->setPendingPreAlarm(true);
+            Logger.log(F("[CHT] PENDING PRE-ALARM SET"));
+        }
+
+        if (distanceD2 > T2)
+        {
+            pMotor->setPosition(HD_CLOSE); // Closes hangar
+            droneOutside = false;
+            pLcd->clear();
+            pContext->setDisplayState(DisplayState::DRONE_INSIDE);
+            setState(IDLE);
+        }
+
+        break;
+    }
+
+    case PRE_ALARM:
+    {
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] PRE-ALARM"));
+        }
+
+        float temp = pTempSensor->getTemperature();
+        unsigned int elapsedT4 = checkTemp(ID_TEMP2, TEMP2); // Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
+        Logger.log("Temperature higher than " + String(TEMP2) + " for " + String(elapsedT4) + " ms");
+
+        if (elapsedT4 > T4)
+        {
+            pMotor->setPosition(HD_CLOSE);
+            pContext->setDisplayState(DisplayState::ALARM);
+            setState(ALARM);
+        }
+        else if (temp < TEMP1) // If the temperature drops below Temp1, the system returns to normal operation
+        {
+            if (droneOutside)
+            {
                 pContext->setDisplayState(DisplayState::DRONE_OUT);
                 setState(DRONE_OUT);
             }
-
-            break;       
-        }
-
-        case DRONE_OUT: {        
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] DRONE_OUT"));
-            }
-
-            //Se nella fase di TAKEOFF è stata rilevata una condizione di pre-allarme (TAKEOFF già avvenuto)
-            if(pContext->isPendingPreAlarm()){
-                Logger.log(F("[CHT] MOVING TO PRE-ALARM")); //Utilizzare per debug
-                setState(PRE_ALARM);
-            } 
-            
-            //Se è arrivato il comando di atterraggio e il drone è stato rilevato dal PIR
-            else if(pPir->isDetected()){ 
-                Logger.log("PIR ha rilevato un movimento");
-                if (Serial.available() > 0) {
-                    String cmd = Serial.readStringUntil('\n');
-                    cmd.trim();
-
-                    Logger.log("Messaggio ricevuto sulla serial LINE " + cmd);
-
-                    if (cmd == DRU_OPENING) {
-                        Logger.log("Messaggio corretto");
-                        pMotor->setPosition(HD_OPEN); //Apre hangar
-                        pLcd->clear();
-                        pLcd->print("LANDING");
-                        pContext->setDisplayState(DisplayState::LANDING);
-                        setState(LANDING);
-                    }
-                }
-            }
-
-            break;
-        }
-
-        case LANDING: {
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] LANDING"));
-            }
-
-            int DDD = pSonar->getDistance(); //distanza rilevata dal sonar
-            unsigned int elapsedT1 = checkTemp(ID_TEMP1, TEMP1); //Controlla se la temperatura ha superato TEMP1 e ne ritorna il tempo
-            unsigned int distanceD2 = checkDist(ID_DIST2, D2, '<'); //Controlla se la distanza è inferiore a D2 e ne ritorna il tempo
-
-            if (elapsedT1 > T3){
-                pContext->setPendingPreAlarm(true); 
-                Logger.log(F("[CHT] PENDING PRE-ALARM SET")); //Utilizzare per debug
-            } else if (DDD < D2 && distanceD2 > T2){
-                pMotor->setPosition(HD_CLOSE); //Chiude hangar
-                pLcd->clear();
-                pLcd->print("DRONE INSIDE");
+            else
+            {
                 pContext->setDisplayState(DisplayState::DRONE_INSIDE);
                 setState(IDLE);
             }
 
-            break;
+            pContext->setPendingPreAlarm(false);
         }
 
-        case PRE_ALARM: {
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] PRE-ALARM"));
-                
-            }
-            
-            float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
-            unsigned int elapsedT4 = checkTemp(ID_TEMP2, TEMP2); //Controlla se la temperatura ha superato TEMP2 e ne ritorna il tempo
+        break;
+    }
 
-            if (temp >= TEMP2 && elapsedT4 > T4){
-                pMotor->setPosition(HD_CLOSE); //Chiude hangar
-                pContext->setDisplayState(DisplayState::ALARM);
-                setState(ALARM);
-            } else if (temp < TEMP1){
-                if(droneOutside){
-                    pLcd->clear();
-                    pLcd->print("DRONE_OUT");
-                    pContext->setDisplayState(DisplayState::DRONE_OUT);
-                    setState(IDLE);
-                } else{
-                    pLcd->clear();
-                    pLcd->print("DRONE INSIDE");
-                    pContext->setDisplayState(DisplayState::DRONE_INSIDE);
-                    setState(IDLE);
-                }
-                pContext->setPendingPreAlarm(false);
-            }
-
-            break;
+    case ALARM:
+    {
+        if (this->checkAndSetJustEntered())
+        {
+            Logger.log(F("[CHT] ALARM"));
+            pLcd->clear();
+            pLcd->print("ALARM");
+            pMotor->setPosition(HD_CLOSE);
+            lastButtonState = false; // Reset quando entri
         }
 
-        case ALARM: {
-            if (this->checkAndSetJustEntered()){
-                Logger.log(F("[CHT] ALARM"));
-                pLcd->clear();
-                pLcd->print("ALARM");
-                pContext->setDisplayState(DisplayState::ALARM);
-            }
+        bool currentPressed = pButton->isPressed();
 
-            if (pButton->isPressed()){
-                pContext->setPendingPreAlarm(false);
-                pContext->setDisplayState(DisplayState::DRONE_INSIDE);
-                setState(IDLE);
-            }
-
-            break;
+        if (currentPressed && !lastButtonState)
+        {
+            Logger.log("RESET button pressed");
+            pContext->setPendingPreAlarm(false);
+            resetConditions();
+            pContext->setDisplayState(DisplayState::DRONE_INSIDE);
+            setState(IDLE);
         }
+
+        lastButtonState = currentPressed;
+        break;
+    }
     }
 }
 
-void ControlHangarTask::setState(State s){
-    state = s; //Perchè da errore ?
+void ControlHangarTask::setState(State s)
+{
+    state = s;
     stateTimestamp = millis();
     justEntered = true;
 }
 
-long ControlHangarTask::elapsedTimeInState(){
+long ControlHangarTask::elapsedTimeInState()
+{
     return millis() - stateTimestamp;
 }
 
-bool ControlHangarTask::checkAndSetJustEntered(){
+bool ControlHangarTask::checkAndSetJustEntered()
+{
     bool bak = justEntered;
-    if (justEntered){
-      justEntered = false;
+    if (justEntered)
+    {
+        justEntered = false;
     }
     return bak;
 }
 
 // Controlla se la temperatura ha superato una certa soglia (TEMP1 o TEMP2) e per quanto tempo consecutivamente
-unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia) {
-    
-    float temp = pTempSensor->getTemperature(); //temperatura rilevata dal sensore
+unsigned int ControlHangarTask::checkTemp(unsigned int id, float soglia)
+{
 
-    bool  &flag   = (id == ID_TEMP1) ? temp1Cond : temp2Cond; // Seleziona il flag corretto in base all'id
-    unsigned int  &start  = (id == ID_TEMP1) ? temp1Start : temp2Start; // Seleziona il tempo di inizio corretto in base all'id
+    float temp = pTempSensor->getTemperature(); // temperatura rilevata dal sensore
 
-    if (temp >= soglia) { 
-        if (!flag) { //Se la condizione era falsa (es. prima volta che viene soddisfatta o è stata resettata)
-            flag = true; 
-            start = millis(); 
+    Logger.log("TEMP : " + String(temp));
+
+    bool &flag = (id == ID_TEMP1) ? temp1Cond : temp2Cond;            // Seleziona il flag corretto in base all'id
+    unsigned int &start = (id == ID_TEMP1) ? temp1Start : temp2Start; // Seleziona il tempo di inizio corretto in base all'id
+
+    if (temp >= soglia)
+    {
+        if (!flag)
+        { // Se la condizione era falsa (es. prima volta che viene soddisfatta o è stata resettata)
+            flag = true;
+            start = millis();
         }
         return millis() - start;
-    } else {
+    }
+    else
+    {
         flag = false;
         return 0;
     }
 }
 
 // Controlla se la distanza ha superato una certa soglia (D1 o D2) e per quanto tempo consecutivamente
-unsigned int ControlHangarTask::checkDist(unsigned int id, unsigned int soglia, char op){
+unsigned int ControlHangarTask::checkDist(unsigned int id, float soglia, char op)
+{
 
-    unsigned  d = pSonar->getDistance();
+    float d = pSonar->getDistance();
 
-    bool  &flag   = (id == ID_DIST1) ? d1Cond   : d2Cond;
-    auto  &start  = (id == ID_DIST1) ? d1Start  : d2Start;
+    Logger.log("DISTANCE : " + String(d));
 
-    bool cond = (op == '>') ? (d > soglia)
-              : (op == '<') ? (d < soglia)
-                            : false;
+    bool &flag = (id == ID_DIST1) ? d1Cond : d2Cond;
+    auto &start = (id == ID_DIST1) ? d1Start : d2Start;
 
-    if (cond) {
-        if (!flag) { flag = true; start = millis(); }
+    bool cond = (op == '>')   ? (d > soglia)
+                : (op == '<') ? (d < soglia)
+                              : false;
+
+    if (cond)
+    {
+        if (!flag)
+        {
+            flag = true;
+            start = millis();
+        }
         return millis() - start;
-    } else {
+    }
+    else
+    {
         flag = false;
         return 0;
     }
+}
+
+void ControlHangarTask::resetConditions()
+{
+    temp1Cond = false;
+    temp2Cond = false;
+    d1Cond = false;
+    d2Cond = false;
+    temp1Start = 0;
+    temp2Start = 0;
+    d1Start = 0;
+    d2Start = 0;
 }

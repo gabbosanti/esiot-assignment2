@@ -10,23 +10,24 @@
 #include "devices/TempSensorTMP36.h"
 #include "devices/Lcd.h"
 
-class HWPlatform {
+class HWPlatform
+{
 
 public:
-  HWPlatform(); //Constructor
+  HWPlatform();
   void init();
   void test();
 
-  //Getters
-  Button* getButton();
-  Led*  getLed1();
-  Led*  getLed2();
-  Led*  getLed3();
-  ServoMotor* getMotor();
-  Pir* getPirSensor();
-  Sonar* getSonar();
-  Lcd* getLcd();
-  TempSensorTMP36* getTempSensor();
+  // Getters
+  Button *getButton();
+  Led *getLed1();
+  Led *getLed2();
+  Led *getLed3();
+  ServoMotor *getMotor();
+  Pir *getPirSensor();
+  Sonar *getSonar();
+  Lcd *getLcd();
+  TempSensorTMP36 *getTempSensor();
 
   void testButton();
   void testLed1();
@@ -39,16 +40,15 @@ public:
   void testTemp();
 
 private:
-  Button* pButton; //Button for reset
-  Led* pLed1; //LED1 indicator
-  Led* pLed2; //LED2 indicator
-  Led* pLed3; //LED3 indicator
-  ServoMotor* pMotor; //Servo motor for opening/closing the hangar door
-  Pir* pPirSensor; //PIR presence sensor
-  Sonar* pSonar; //Ultrasonic distance sensor
-  TempSensorTMP36* pTempSensor; //Temperature sensor
-  Lcd* pLcd; //LCD display
-
+  Button *pButton;              // Button for reset
+  Led *pLed1;                   // LED1 indicator
+  Led *pLed2;                   // LED2 indicator
+  Led *pLed3;                   // LED3 indicator
+  ServoMotor *pMotor;           // Servo motor for opening/closing the hangar door
+  Pir *pPirSensor;              // PIR presence sensor
+  Sonar *pSonar;                // Ultrasonic distance sensor
+  TempSensorTMP36 *pTempSensor; // Temperature sensor
+  Lcd *pLcd;                    // LCD display
 };
 
 #endif
